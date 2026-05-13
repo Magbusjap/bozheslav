@@ -10,6 +10,7 @@ use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\TextInput;
 // end MJML
 use App\Filament\Resources\PortfolioPageResource\Pages;
+use App\Filament\Resources\Concerns\HasTranslatableResource;
 use App\Models\PortfolioPage;
 use Awcodes\Curator\Components\Forms\CuratorPicker;
 use Filament\Forms;
@@ -23,6 +24,7 @@ use FilamentTiptapEditor\TiptapEditor;
 class PortfolioPageResource extends Resource
 {
     use HasTrashAction;
+    use HasTranslatableResource;
 
     protected static ?string $model = PortfolioPage::class;
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
@@ -36,6 +38,7 @@ class PortfolioPageResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
+            self::localeFormSelect(),
             Forms\Components\TextInput::make('title')
                 ->label('Заголовок')
                 ->required()
@@ -50,7 +53,7 @@ class PortfolioPageResource extends Resource
                 ->label('URL')
                 ->required()
                 ->maxLength(255)
-                ->unique(ignoreRecord: true)
+                ->unique(ignoreRecord: true, modifyRuleUsing: self::slugUniqueRule())
                 ->prefix('/'),
             Forms\Components\Select::make('status')
                 ->label('Статус')
@@ -270,35 +273,61 @@ class PortfolioPageResource extends Resource
                     ->label('Заголовок')
                     ->searchable()
                     ->wrap()
-                    ->url(fn ($record) => Pages\EditPortfolioPage::getUrl(['record' => $record])),
+                    ->description(fn (PortfolioPage $record): ?string => self::placeholderDescription($record))
+                    ->url(fn (PortfolioPage $record): ?string => $record->isTranslationPlaceholder()
+                        ? null
+                        : Pages\EditPortfolioPage::getUrl(['record' => $record])),
                 Tables\Columns\TextColumn::make('slug')
                     ->label('URL')
                     ->searchable()
-                    ->wrap(),
+                    ->wrap()
+                    ->extraAttributes(fn (PortfolioPage $record): array => self::placeholderCellAttributes($record)),
+                self::localeTableColumn(),
                 Tables\Columns\SelectColumn::make('status')
                     ->label('Статус')
                     ->options([
                         'published' => 'Опубликована',
                         'draft'     => 'Черновик',
-                    ]),
+                    ])
+                    ->disabled(fn (PortfolioPage $record): bool => $record->isTranslationPlaceholder()),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Обновлено')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->extraAttributes(fn (PortfolioPage $record): array => self::placeholderCellAttributes($record)),
             ])
+            ->recordClasses(fn (PortfolioPage $record): ?string => $record->isTranslationPlaceholder()
+                ? 'bg-warning-50 dark:bg-warning-950/20'
+                : null)
             ->recordUrl(
-                fn ($record) => Pages\EditPortfolioPage::getUrl(['record' => $record])
+                fn (PortfolioPage $record): ?string => self::translatableRecordUrl($record)
             )
             ->actions([
-                Tables\Actions\EditAction::make(),
-                self::getTrashAction('Page-проекты'),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (PortfolioPage $record): bool => ! $record->isTranslationPlaceholder()),
+                self::getTrashAction('Page-проекты')
+                    ->visible(fn (PortfolioPage $record): bool => ! $record->isTranslationPlaceholder()),
                 Tables\Actions\Action::make('view')
                     ->label('Просмотр')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn ($record) => '/portfolio/pages/' . $record->slug)
+                    ->url(fn (PortfolioPage $record) => '/' . $record->locale . '/portfolio/pages/' . $record->slug)
                     ->openUrlInNewTab()
                     ->color('gray')
+                    ->visible(fn (PortfolioPage $record): bool => ! $record->isTranslationPlaceholder())
             ]);
+    }
+
+    public static function translationCloneFields(): array
+    {
+        return [
+            'title',
+            'slug',
+            'status',
+            'excerpt',
+            'content',
+            'seo_title',
+            'seo_description',
+        ];
     }
 
     public static function getPages(): array

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PortfolioCategoryResource\Pages;
+use App\Filament\Resources\Concerns\HasTranslatableResource;
 use App\Models\PortfolioCategory;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +15,7 @@ use Filament\Tables\Table;
 class PortfolioCategoryResource extends Resource
 {
     use HasTrashAction;
+    use HasTranslatableResource;
 
     protected static ?string $model = PortfolioCategory::class;
     protected static ?string $navigationIcon = 'heroicon-o-tag';
@@ -26,6 +28,7 @@ class PortfolioCategoryResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
+            self::localeFormSelect(),
             Forms\Components\TextInput::make('name')
                 ->label('Название')
                 ->required()
@@ -40,7 +43,7 @@ class PortfolioCategoryResource extends Resource
                 ->label('Slug')
                 ->required()
                 ->maxLength(255)
-                ->unique(ignoreRecord: true),
+                ->unique(ignoreRecord: true, modifyRuleUsing: self::slugUniqueRule()),
             Forms\Components\TextInput::make('sort_order')
                 ->label('Порядок сортировки')
                 ->numeric()
@@ -64,34 +67,55 @@ class PortfolioCategoryResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->label('Название')
                     ->searchable()
-                    ->extraAttributes(['style' => 'cursor: pointer; 
-                     text-decoration: none;'])
-                    ->extraAttributes(['onmouseover' => 'this.style.textDecoration="underline"',
-                     'onmouseout' => 'this.style.textDecoration="none"']),
+                    ->description(fn (PortfolioCategory $record): ?string => self::placeholderDescription($record))
+                    ->extraAttributes(fn (PortfolioCategory $record): array => $record->isTranslationPlaceholder()
+                        ? ['style' => 'cursor: default; text-decoration: none; opacity: .55;']
+                        : [
+                            'style' => 'cursor: pointer; text-decoration: none;',
+                            'onmouseover' => 'this.style.textDecoration="underline"',
+                            'onmouseout' => 'this.style.textDecoration="none"',
+                        ]),
                 Tables\Columns\TextColumn::make('slug')
-                    ->label('Slug'),
+                    ->label('Slug')
+                    ->extraAttributes(fn (PortfolioCategory $record): array => self::placeholderCellAttributes($record)),
+                self::localeTableColumn(),
                 Tables\Columns\TextColumn::make('sort_order')
                     ->label('Порядок')
-                    ->sortable(),
+                    ->sortable()
+                    ->extraAttributes(fn (PortfolioCategory $record): array => self::placeholderCellAttributes($record)),
                 Tables\Columns\SelectColumn::make('status')
                     ->label('Статус')
                     ->options([
                         'published' => 'Опубликована',
                         'draft'     => 'Черновик',
-                    ]),
+                    ])
+                    ->disabled(fn (PortfolioCategory $record): bool => $record->isTranslationPlaceholder()),
             ])
+            ->recordClasses(fn (PortfolioCategory $record): ?string => $record->isTranslationPlaceholder()
+                ? 'bg-warning-50 dark:bg-warning-950/20'
+                : null)
+            ->recordUrl(fn (PortfolioCategory $record): ?string => self::translatableRecordUrl($record))
             ->defaultSort('sort_order')
             ->actions([
-                Tables\Actions\EditAction::make(),
-                self::getTrashAction('Категории', 'name'),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (PortfolioCategory $record): bool => ! $record->isTranslationPlaceholder()),
+                self::getTrashAction('Категории', 'name')
+                    ->visible(fn (PortfolioCategory $record): bool => ! $record->isTranslationPlaceholder()),
             ]);
 
+    }
+
+    public static function translationCloneFields(): array
+    {
+        return ['name', 'slug', 'sort_order', 'status'];
     }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ManagePortfolioCategories::route('/'),
+            'create' => Pages\CreatePortfolioCategory::route('/create'),
+            'edit' => Pages\EditPortfolioCategory::route('/{record}/edit'),
         ];
     }
 }

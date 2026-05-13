@@ -2,12 +2,15 @@
 
 namespace App\Filament\Resources\PortfolioCategoryResource\Pages;
 
+use App\Filament\Resources\Pages\Concerns\HasLocaleTabs;
 use App\Filament\Resources\PortfolioCategoryResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ManageRecords;
 
 class ManagePortfolioCategories extends ManageRecords
 {
+    use HasLocaleTabs;
+
     protected static string $resource = PortfolioCategoryResource::class;
 
     protected function getHeaderActions(): array

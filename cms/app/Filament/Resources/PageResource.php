@@ -10,6 +10,7 @@ use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\TextInput;
 // end MJML
 use Awcodes\Curator\Components\Forms\CuratorPicker;
+use App\Filament\Resources\Concerns\HasTranslatableResource;
 use App\Filament\Resources\PageResource\Pages;
 use App\Models\Page;
 use Filament\Forms;
@@ -23,6 +24,7 @@ use FilamentTiptapEditor\TiptapEditor;
 class PageResource extends Resource
 {
     use HasTrashAction;
+    use HasTranslatableResource;
 
     protected static ?string $model = Page::class;
     protected static ?string $navigationIcon = 'heroicon-o-document';
@@ -34,6 +36,7 @@ class PageResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
+            self::localeFormSelect(),
             Forms\Components\TextInput::make('title')
                 ->label('Заголовок')
                 ->required()
@@ -48,7 +51,7 @@ class PageResource extends Resource
                 ->label('URL')
                 ->required()
                 ->maxLength(255)
-                ->unique(ignoreRecord: true)
+                ->unique(ignoreRecord: true, modifyRuleUsing: self::slugUniqueRule())
                 ->prefix('/'),
             Forms\Components\Select::make('status')
                 ->label('Статус')
@@ -221,36 +224,66 @@ class PageResource extends Resource
                 Tables\Columns\TextColumn::make('title')
                     ->label('Заголовок')
                     ->searchable()
-                    ->extraAttributes(['style' => 'cursor: pointer; text-decoration: none;'])
-                    ->extraAttributes(['onmouseover' => 'this.style.textDecoration="underline"',
-                     'onmouseout' => 'this.style.textDecoration="none"']),
+                    ->description(fn (Page $record): ?string => self::placeholderDescription($record))
+                    ->extraAttributes(fn (Page $record): array => $record->isTranslationPlaceholder()
+                        ? ['style' => 'cursor: default; text-decoration: none; opacity: .55;']
+                        : [
+                            'style' => 'cursor: pointer; text-decoration: none;',
+                            'onmouseover' => 'this.style.textDecoration="underline"',
+                            'onmouseout' => 'this.style.textDecoration="none"',
+                        ]),
                 Tables\Columns\TextColumn::make('slug')
                     ->label('URL')
-                    ->searchable(),
+                    ->searchable()
+                    ->extraAttributes(fn (Page $record): array => self::placeholderCellAttributes($record)),
+                self::localeTableColumn(),
                 Tables\Columns\SelectColumn::make('status')
                     ->label('Статус')
                     ->options([
                         'published' => 'Опубликована',
                         'draft'     => 'Черновик',
-                    ]),
+                    ])
+                    ->disabled(fn (Page $record): bool => $record->isTranslationPlaceholder())
+                    ->extraAttributes(fn (Page $record): array => self::placeholderCellAttributes($record)),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Обновлено')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->extraAttributes(fn (Page $record): array => self::placeholderCellAttributes($record)),
             ])
+            ->recordClasses(fn (Page $record): ?string => $record->isTranslationPlaceholder()
+                ? 'bg-warning-50 dark:bg-warning-950/20'
+                : null)
             ->recordUrl(
-                fn ($record) => Pages\EditPage::getUrl(['record' => $record])
+                fn (Page $record): ?string => self::translatableRecordUrl($record)
             )
             ->actions([
-                Tables\Actions\EditAction::make(),
-                self::getTrashAction('Страницы'),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (Page $record): bool => ! $record->isTranslationPlaceholder()),
+                self::getTrashAction('Страницы')
+                    ->visible(fn (Page $record): bool => ! $record->isTranslationPlaceholder()),
                 Tables\Actions\Action::make('view')
                     ->label('Просмотр')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn ($record) => '/' . $record->slug)
+                    ->url(fn (Page $record) => '/' . $record->locale . '/' . $record->slug)
                     ->openUrlInNewTab()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->visible(fn (Page $record): bool => ! $record->isTranslationPlaceholder()),
             ]);
+    }
+
+    public static function translationCloneFields(): array
+    {
+        return [
+            'title',
+            'slug',
+            'status',
+            'excerpt',
+            'content',
+            'seo_title',
+            'seo_description',
+            'type',
+        ];
     }
 
     public static function getPages(): array

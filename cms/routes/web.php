@@ -13,6 +13,7 @@ $home = function () {
         ->take(3)
         ->get();
     $projects = \App\Models\PortfolioProject::where('status', 'published')
+        ->when(Schema::hasColumn('portfolio_projects', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
         ->orderBy('sort_order')
         ->get();
     return view('index', compact('posts', 'projects'));
@@ -22,10 +23,11 @@ $skills = fn() => view('skills');
 
 $portfolio = function () {
     $projects = \App\Models\PortfolioProject::where('status', 'published')
+        ->when(Schema::hasColumn('portfolio_projects', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
         ->orderBy('sort_order')
         ->get();
-    $categories = \App\Models\PortfolioCategory::orderBy('sort_order')->get();
     $categories = \App\Models\PortfolioCategory::where('status', 'published')
+        ->when(Schema::hasColumn('portfolio_categories', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
         ->orderBy('sort_order')
         ->get();
     return view('portfolio', compact('projects', 'categories'));
@@ -39,7 +41,9 @@ $blog = function () {
         ->when(Schema::hasColumn('posts', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
         ->orderBy('created_at', 'desc')
         ->get();
-    $categories = \App\Models\Category::all();
+    $categories = \App\Models\Category::query()
+        ->when(Schema::hasColumn('categories', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
+        ->get();
     return view('blog', compact('posts', 'categories'));
 };
 
@@ -63,7 +67,8 @@ $article = function (...$params) {
 
 $portfolioPage = function (...$params) {
     $slug = end($params);
-    $query = \App\Models\PortfolioPage::where('slug', $slug);
+    $query = \App\Models\PortfolioPage::where('slug', $slug)
+        ->when(Schema::hasColumn('portfolio_pages', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()));
 
     if (!auth()->check()) {
         $query->where('status', 'published');
@@ -76,6 +81,7 @@ $portfolioPage = function (...$params) {
     }
 
     $related = \App\Models\PortfolioProject::where('status', 'published')
+        ->when(Schema::hasColumn('portfolio_projects', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
         ->inRandomOrder()
         ->take(10)
         ->get();
@@ -85,7 +91,8 @@ $portfolioPage = function (...$params) {
 
 $page = function (...$params) {
     $slug = end($params);
-    $query = \App\Models\Page::where('slug', $slug);
+    $query = \App\Models\Page::where('slug', $slug)
+        ->when(Schema::hasColumn('pages', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()));
     
     if (!auth()->check()) {
         $query->where('status', 'published');
