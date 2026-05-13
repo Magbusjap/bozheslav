@@ -21,6 +21,23 @@
 							<a href="/o-razrabotchike" class="nav__link">О разработчике</a>
 							<a href="/contacts" class="nav__link">Контакты</a>
 						</div>
+						<div class="language-switcher" data-language-switcher>
+							<button
+								class="language-switcher__button"
+								type="button"
+								aria-label="Change language"
+								aria-haspopup="true"
+								aria-expanded="false"
+								data-language-toggle
+							>
+								<span data-current-locale>RU</span>
+							</button>
+							<div class="language-switcher__menu" hidden data-language-menu>
+								<a class="language-switcher__option" href="/ru" data-locale-option="ru">Русский</a>
+								<a class="language-switcher__option" href="/en" data-locale-option="en">English</a>
+								<a class="language-switcher__option" href="/sr" data-locale-option="sr">Српски</a>
+							</div>
+						</div>
 						<button
 							class="btn btn--icon theme-toggle"
 							id="themeToggle"
@@ -43,6 +60,23 @@
 
 					<!-- Mobile: theme toggle + hamburger -->
 					<div class="nav__mobile-controls">
+						<div class="language-switcher language-switcher--mobile" data-language-switcher>
+							<button
+								class="language-switcher__button"
+								type="button"
+								aria-label="Change language"
+								aria-haspopup="true"
+								aria-expanded="false"
+								data-language-toggle
+							>
+								<span data-current-locale>RU</span>
+							</button>
+							<div class="language-switcher__menu" hidden data-language-menu>
+								<a class="language-switcher__option" href="/ru" data-locale-option="ru">Русский</a>
+								<a class="language-switcher__option" href="/en" data-locale-option="en">English</a>
+								<a class="language-switcher__option" href="/sr" data-locale-option="sr">Српски</a>
+							</div>
+						</div>
 						<button
 							class="btn btn--icon theme-toggle"
 							id="themeToggleMobile"
