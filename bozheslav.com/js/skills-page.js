@@ -212,14 +212,15 @@ const SKILLS = {
 
 
 function getLevelLabel(level) {
-	if (level >= 80) return "Уверенно";
-	if (level >= 60) return "Хорошо";
-	if (level >= 40) return "В процессе";
-	return "Базово";
+	const levels = window.SITE_I18N?.client?.levels || {};
+	if (level >= 80) return levels.confident || "Уверенно";
+	if (level >= 60) return levels.good || "Хорошо";
+	if (level >= 40) return levels.progress || "В процессе";
+	return levels.basic || "Базово";
 }
 
 function openModal(skillKey) {
-	const skill = SKILLS[skillKey];
+	const skill = getTranslatedSkill(skillKey);
 	if (!skill) return;
 
 	document.getElementById("skillModalTitle").textContent = skill.title;
@@ -237,6 +238,18 @@ function openModal(skillKey) {
 	modal.classList.add("active");
 	modal.setAttribute("aria-hidden", "false");
 	document.body.style.overflow = "hidden";
+}
+
+function getTranslatedSkill(skillKey) {
+	const skill = SKILLS[skillKey];
+	if (!skill) return null;
+
+	const translated = window.SITE_I18N?.client?.skills?.[skillKey] || {};
+
+	return {
+		...skill,
+		...translated,
+	};
 }
 
 function closeModal() {
