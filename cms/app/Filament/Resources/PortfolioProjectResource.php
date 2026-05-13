@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PortfolioProjectResource\Pages;
+use App\Filament\Resources\Concerns\HasTranslatableResource;
 use App\Models\PortfolioProject;
 use Awcodes\Curator\Components\Forms\CuratorPicker;
 use Filament\Forms;
@@ -15,6 +16,7 @@ use Filament\Tables\Table;
 class PortfolioProjectResource extends Resource
 {
     use HasTrashAction;
+    use HasTranslatableResource;
 
     protected static ?string $model = PortfolioProject::class;
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
@@ -27,6 +29,7 @@ class PortfolioProjectResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
+            self::localeFormSelect(),
             Forms\Components\TextInput::make('title')
                 ->label('Название')
                 ->required()
@@ -41,7 +44,7 @@ class PortfolioProjectResource extends Resource
                 ->label('Slug')
                 ->required()
                 ->maxLength(255)
-                ->unique(ignoreRecord: true),
+                ->unique(ignoreRecord: true, modifyRuleUsing: self::slugUniqueRule()),
             Forms\Components\Select::make('portfolio_category_id')
                 ->label('Категория')
                 ->relationship('category', 'name')
@@ -118,9 +121,14 @@ class PortfolioProjectResource extends Resource
                 Tables\Columns\TextColumn::make('title')
                     ->label('Название')
                     ->searchable()
-                    ->url(fn ($record) => Pages\EditPortfolioProject::getUrl(['record' => $record])),
+                    ->description(fn (PortfolioProject $record): ?string => self::placeholderDescription($record))
+                    ->url(fn (PortfolioProject $record): ?string => $record->isTranslationPlaceholder()
+                        ? null
+                        : Pages\EditPortfolioProject::getUrl(['record' => $record])),
+                self::localeTableColumn(),
                 Tables\Columns\TextColumn::make('category.name')
-                    ->label('Категория'),
+                    ->label('Категория')
+                    ->extraAttributes(fn (PortfolioProject $record): array => self::placeholderCellAttributes($record)),
                 Tables\Columns\TextColumn::make('link_type')
                     ->label('Тип')
                     ->badge()
@@ -129,23 +137,49 @@ class PortfolioProjectResource extends Resource
                         'page'     => 'info',
                         'external' => 'warning',
                         default    => 'gray',
-                    }),
+                    })
+                    ->extraAttributes(fn (PortfolioProject $record): array => self::placeholderCellAttributes($record)),
                 Tables\Columns\SelectColumn::make('status')
                     ->label('Статус')
                     ->options([
                         'published' => 'Опубликован',
                         'draft'     => 'Черновик',
-                    ]),
+                    ])
+                    ->disabled(fn (PortfolioProject $record): bool => $record->isTranslationPlaceholder()),
                 Tables\Columns\TextColumn::make('sort_order')
                     ->label('Порядок')
-                    ->sortable(),
+                    ->sortable()
+                    ->extraAttributes(fn (PortfolioProject $record): array => self::placeholderCellAttributes($record)),
             ])
-            ->recordUrl(fn ($record) => Pages\EditPortfolioProject::getUrl(['record' => $record]))
+            ->recordClasses(fn (PortfolioProject $record): ?string => $record->isTranslationPlaceholder()
+                ? 'bg-warning-50 dark:bg-warning-950/20'
+                : null)
+            ->recordUrl(fn (PortfolioProject $record): ?string => self::translatableRecordUrl($record))
             ->defaultSort('sort_order')
             ->actions([
-                Tables\Actions\EditAction::make(),
-                self::getTrashAction('Проекты'),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (PortfolioProject $record): bool => ! $record->isTranslationPlaceholder()),
+                self::getTrashAction('Проекты')
+                    ->visible(fn (PortfolioProject $record): bool => ! $record->isTranslationPlaceholder()),
             ]);
+    }
+
+    public static function translationCloneFields(): array
+    {
+        return [
+            'title',
+            'slug',
+            'portfolio_category_id',
+            'status',
+            'description',
+            'stack_tags',
+            'github_url',
+            'link_type',
+            'link_url',
+            'link_label',
+            'cover_image',
+            'sort_order',
+        ];
     }
 
     public static function getPages(): array

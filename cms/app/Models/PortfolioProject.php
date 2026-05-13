@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocaleTranslations;
 use Illuminate\Database\Eloquent\Model;
 
 class PortfolioProject extends Model
 {
+    use HasLocaleTranslations;
+
     protected $fillable = [
+        'locale',
+        'translation_group_id',
         'title',
         'slug',
         'description',

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
+use App\Filament\Resources\Concerns\HasTranslatableResource;
 use App\Filament\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
 use Filament\Forms;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class CategoryResource extends Resource
 {
     use HasTrashAction;
+    use HasTranslatableResource;
 
     protected static ?string $model = Category::class;
 
@@ -26,6 +28,7 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
+                self::localeFormSelect(),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255)
@@ -40,7 +43,7 @@ class CategoryResource extends Resource
                 Forms\Components\TextInput::make('slug')
                     ->required()
                     ->maxLength(255)
-                    ->unique(ignoreRecord: true),
+                    ->unique(ignoreRecord: true, modifyRuleUsing: self::slugUniqueRule()),
             ]);
     }
 
@@ -50,11 +53,18 @@ class CategoryResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
-                    ->extraAttributes(['style' => 'cursor: pointer; text-decoration: none;'])
-                    ->extraAttributes(['onmouseover' => 'this.style.textDecoration="underline"', 
-                    'onmouseout' => 'this.style.textDecoration="none"']),
+                    ->description(fn (Category $record): ?string => self::placeholderDescription($record))
+                    ->extraAttributes(fn (Category $record): array => $record->isTranslationPlaceholder()
+                        ? ['style' => 'cursor: default; text-decoration: none; opacity: .55;']
+                        : [
+                            'style' => 'cursor: pointer; text-decoration: none;',
+                            'onmouseover' => 'this.style.textDecoration="underline"',
+                            'onmouseout' => 'this.style.textDecoration="none"',
+                        ]),
                 Tables\Columns\TextColumn::make('slug')
-                    ->searchable(),
+                    ->searchable()
+                    ->extraAttributes(fn (Category $record): array => self::placeholderCellAttributes($record)),
+                self::localeTableColumn(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -64,18 +74,30 @@ class CategoryResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->recordClasses(fn (Category $record): ?string => $record->isTranslationPlaceholder()
+                ? 'bg-warning-50 dark:bg-warning-950/20'
+                : null)
+            ->recordUrl(fn (Category $record): ?string => self::translatableRecordUrl($record))
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                self::getTrashAction('Категории блога', 'name'),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (Category $record): bool => ! $record->isTranslationPlaceholder()),
+                self::getTrashAction('Категории блога', 'name')
+                    ->visible(fn (Category $record): bool => ! $record->isTranslationPlaceholder()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     self::getTrashBulkAction('Категории блога', 'name'),
                 ]),
-            ]);
+            ])
+            ->checkIfRecordIsSelectableUsing(fn (Category $record): bool => ! $record->isTranslationPlaceholder());
+    }
+
+    public static function translationCloneFields(): array
+    {
+        return ['name', 'slug'];
     }
 
     public static function getRelations(): array
