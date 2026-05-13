@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\Trash;
+use App\Support\PostLocaleStatus;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -30,8 +31,11 @@ class TrashResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('model_label')
                     ->label('Раздел')
-                    ->badge()
-                    ->color('gray')
+                    ->formatStateUsing(fn (string $state, Trash $record) => PostLocaleStatus::labelWithIndicator(
+                        $state,
+                        PostLocaleStatus::forTrash($record)
+                    ))
+                    ->html()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('model_name')

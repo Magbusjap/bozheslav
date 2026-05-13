@@ -11,7 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->append(\App\Http\Middleware\SetLocaleFromLocation::class);
         $middleware->append(\App\Http\Middleware\TrackVisit::class);
+        $middleware->append(\App\Http\Middleware\TranslateStaticContent::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

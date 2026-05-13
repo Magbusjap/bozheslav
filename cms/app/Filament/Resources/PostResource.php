@@ -18,6 +18,8 @@ use Filament\Tables\Table;
 use FilamentTiptapEditor\TiptapEditor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Validation\Rules\Unique;
+use Illuminate\Support\Str;
 
 class PostResource extends Resource
 {
@@ -31,7 +33,13 @@ class PostResource extends Resource
     {
         return $form
             ->schema([
+        Forms\Components\Select::make('locale')
+            ->label('Язык статьи')
+            ->options(Post::LOCALES)
+            ->default('ru')
+            ->required(),
 		Forms\Components\TextInput::make('title')
+            ->label('Заголовок')
 			->required()
 			->maxLength(255)
 			->live(debounce: 800)
@@ -43,14 +51,16 @@ class PostResource extends Resource
 				$set('slug', \Illuminate\Support\Str::slug(transliterate($state)));
 			}),
 		Forms\Components\TextInput::make('slug')
+            ->label('Slug')
 			->required()
 			->maxLength(255)
-			->unique(ignoreRecord: true),
+			->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, callable $get) => $rule->where('locale', $get('locale'))),
 		Forms\Components\Select::make('category_id')
-		        ->label('Category')
+		    ->label('Категория')
 			->relationship('category', 'name')
 			->required(),
                 Forms\Components\Textarea::make('excerpt')
+                    ->label('Краткое описание')
                     ->columnSpanFull(),
                Forms\Components\Builder::make('content')
 		    ->blocks([
@@ -192,23 +202,54 @@ class PostResource extends Resource
 		return $table
 			->columns([
 				Tables\Columns\TextColumn::make('title')
+                    ->label('Title')
 					->searchable()
 					->wrap()
-					->extraAttributes(['style' => 'cursor: pointer; text-decoration: none;'])
-    				->extraAttributes(['onmouseover' => 'this.style.textDecoration="underline"', 'onmouseout' => 'this.style.textDecoration="none"']),
+					->description(fn (Post $record): ?string => $record->isTranslationPlaceholder()
+						? 'Нет версии ' . $record->localeLabel($record->selectedLocale()) . '. Показана основа ' . $record->localeLabel() . '.'
+						: null)
+					->extraAttributes(fn (Post $record): array => $record->isTranslationPlaceholder()
+						? ['style' => 'cursor: default; text-decoration: none; opacity: .55;']
+						: [
+							'style' => 'cursor: pointer; text-decoration: none;',
+							'onmouseover' => 'this.style.textDecoration="underline"',
+							'onmouseout' => 'this.style.textDecoration="none"',
+						]),
 				Tables\Columns\TextColumn::make('slug')
+                    ->label('Slug')
 					->searchable()
-					->wrap(),
+					->wrap()
+					->extraAttributes(fn (Post $record): array => self::placeholderCellAttributes($record)),
+                Tables\Columns\TextColumn::make('locale')
+                    ->label('Язык')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state, Post $record): string => $record->isTranslationPlaceholder()
+						? $record->localeLabel($record->selectedLocale()) . ': клонировать'
+						: $record->localeLabel($state))
+                    ->color(fn (string $state, Post $record): string => self::localeColor(
+						$record->isTranslationPlaceholder() ? $record->selectedLocale() : $state
+					))
+					->tooltip(fn (Post $record): ?string => $record->isTranslationPlaceholder()
+						? 'Создать версию ' . $record->localeLabel($record->selectedLocale()) . ' на основе ' . $record->localeLabel()
+						: null)
+					->action(fn (Post $record) => $record->isTranslationPlaceholder()
+						? redirect(self::getTranslationCreateUrl($record))
+						: null),
 				Tables\Columns\ImageColumn::make('cover_image')
+                    ->label('Cover image')
     				->getStateUsing(fn ($record) => $record->cover_url)
 					->width(85)
-   					->height(65),
+   					->height(65)
+					->extraAttributes(fn (Post $record): array => self::placeholderCellAttributes($record)),
 				Tables\Columns\SelectColumn::make('status')
+                    ->label('Status')
 					->options([
 						'draft' => 'Черновик',
 						'published' => 'Опубликован',
 					])
-					->selectablePlaceholder(false),
+					->selectablePlaceholder(false)
+					->disabled(fn (Post $record): bool => $record->isTranslationPlaceholder())
+					->extraAttributes(fn (Post $record): array => self::placeholderCellAttributes($record)),
 				Tables\Columns\TextColumn::make('created_at')
 					->dateTime()
 					->sortable()
@@ -216,30 +257,40 @@ class PostResource extends Resource
 				Tables\Columns\TextColumn::make('updated_at')
 					->label('Обновлено')
 					->dateTime()
-					->sortable(),
+					->sortable()
+					->extraAttributes(fn (Post $record): array => self::placeholderCellAttributes($record)),
 					// ->toggleable(isToggledHiddenByDefault: true),
 			])
+			->recordClasses(fn (Post $record): ?string => $record->isTranslationPlaceholder()
+				? 'bg-warning-50 dark:bg-warning-950/20'
+				: null)
 			->recordUrl(
-				fn ($record) => Pages\EditPost::getUrl(['record' => $record])
+				fn (Post $record): ?string => $record->isTranslationPlaceholder()
+					? null
+					: Pages\EditPost::getUrl(['record' => $record])
 			)
 			->filters([
 				//
 			])
 			->actions([
-				Tables\Actions\EditAction::make(),
-				self::getTrashAction('Posts'),
+				Tables\Actions\EditAction::make()
+					->visible(fn (Post $record): bool => ! $record->isTranslationPlaceholder()),
+				self::getTrashAction('Posts')
+					->visible(fn (Post $record): bool => ! $record->isTranslationPlaceholder()),
 				Tables\Actions\Action::make('view')
 					->label('Просмотр')
 					->icon('heroicon-o-arrow-top-right-on-square')
-					->url(fn ($record) => '/blog/' . $record->slug)
+					->url(fn ($record) => '/' . $record->locale . '/blog/' . $record->slug)
 					->openUrlInNewTab()
-					->color('gray'),
+					->color('gray')
+					->visible(fn (Post $record): bool => ! $record->isTranslationPlaceholder()),
 			])
 			->bulkActions([
 				Tables\Actions\BulkActionGroup::make([
 					self::getTrashBulkAction('Posts'),
 				]),
-			]);
+			])
+			->checkIfRecordIsSelectableUsing(fn (Post $record): bool => ! $record->isTranslationPlaceholder());
 	}
 
     public static function getRelations(): array
@@ -247,6 +298,58 @@ class PostResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function getTranslationCreateUrl(Post $source): string
+    {
+        $targetLocale = $source->selectedLocale();
+
+        $existingTranslation = $source->translation_group_id
+            ? Post::query()
+                ->where('translation_group_id', $source->translation_group_id)
+                ->where('locale', $targetLocale)
+                ->first()
+            : null;
+
+        if ($existingTranslation) {
+            return Pages\EditPost::getUrl(['record' => $existingTranslation]);
+        }
+
+        return Pages\CreatePost::getUrl([
+            'clone_from' => $source->getKey(),
+            'locale' => $targetLocale,
+        ]);
+    }
+
+    private static function localeColor(string $locale): string
+    {
+        return match ($locale) {
+            'ru' => 'danger',
+            'en' => 'info',
+            'sr' => 'success',
+            default => 'gray',
+        };
+    }
+
+    private static function placeholderCellAttributes(Post $record): array
+    {
+        return $record->isTranslationPlaceholder()
+            ? ['style' => 'opacity: .55;']
+            : [];
+    }
+
+    public static function uniqueSlugForLocale(string $slug, string $locale): string
+    {
+        $baseSlug = Str::slug($slug) ?: 'post';
+        $uniqueSlug = $baseSlug;
+        $suffix = 2;
+
+        while (Post::query()->where('locale', $locale)->where('slug', $uniqueSlug)->exists()) {
+            $uniqueSlug = "{$baseSlug}-{$suffix}";
+            $suffix++;
+        }
+
+        return $uniqueSlug;
     }
 
 	

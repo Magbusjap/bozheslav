@@ -16,7 +16,8 @@ class SetLocaleFromLocation
 
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $this->localeFromQuery($request)
+        $locale = $this->localeFromPath($request)
+            ?? $this->localeFromQuery($request)
             ?? $this->localeFromSession()
             ?? $this->localeFromCountry($this->countryCode($request))
             ?? 'en';
@@ -24,6 +25,21 @@ class SetLocaleFromLocation
         App::setLocale($locale);
 
         return $next($request);
+    }
+
+    private function localeFromPath(Request $request): ?string
+    {
+        $locale = $request->segment(1);
+
+        if (! is_string($locale) || ! in_array($locale, self::SUPPORTED, true)) {
+            return null;
+        }
+
+        if ($request->hasSession()) {
+            $request->session()->put('locale', $locale);
+        }
+
+        return $locale;
     }
 
     private function localeFromQuery(Request $request): ?string

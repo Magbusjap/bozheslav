@@ -18,14 +18,14 @@ class EditPost extends EditRecord
         return [
             Actions\Action::make('view')
                 ->label('Перейти к просмотру')
-                ->url(fn () => '/blog/' . $this->record->slug)
+                ->url(fn () => '/' . $this->record->locale . '/blog/' . $this->record->slug)
                 ->openUrlInNewTab()
                 ->icon('heroicon-o-arrow-top-right-on-square')
                 ->color('gray')
                 ->visible(fn () => $this->record->status === 'published'),
             Actions\Action::make('preview')
                 ->label('Просмотр черновика')
-                ->url(fn () => '/blog/' . $this->record->slug)
+                ->url(fn () => '/' . $this->record->locale . '/blog/' . $this->record->slug)
                 ->openUrlInNewTab()
                 ->icon('heroicon-o-eye')
                 ->color('warning')

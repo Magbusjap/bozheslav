@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Post;
+use App\Support\PostLocaleStatus;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -21,6 +22,10 @@ class LatestPosts extends BaseWidget
                 Tables\Columns\TextColumn::make('title')
                     ->label('Заголовок')
                     ->limit(50),
+                Tables\Columns\TextColumn::make('translations')
+                    ->label('ru / eng / sr')
+                    ->state(fn (Post $record) => PostLocaleStatus::indicator(PostLocaleStatus::forPost($record)))
+                    ->html(),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Статус')
                     ->colors([

@@ -2,10 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 
-// Home
-Route::get('/', function () {
+$siteLocales = ['ru', 'en', 'sr'];
+
+$home = function () {
     $posts = \App\Models\Post::where('status', 'published')
+        ->when(Schema::hasColumn('posts', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
         ->orderBy('created_at', 'desc')
         ->take(3)
         ->get();
@@ -13,11 +16,11 @@ Route::get('/', function () {
         ->orderBy('sort_order')
         ->get();
     return view('index', compact('posts', 'projects'));
-});
+};
 
-// Pages
-Route::get('/skills', fn() => view('skills'));
-Route::get('/portfolio', function () {
+$skills = fn() => view('skills');
+
+$portfolio = function () {
     $projects = \App\Models\PortfolioProject::where('status', 'published')
         ->orderBy('sort_order')
         ->get();
@@ -26,23 +29,24 @@ Route::get('/portfolio', function () {
         ->orderBy('sort_order')
         ->get();
     return view('portfolio', compact('projects', 'categories'));
-});
-Route::get('/experience', fn() => view('experience'));
-Route::get('/contacts', fn() => view('contacts'));
+};
 
-// Blog — post list
-Route::get('/blog', function () {
+$experience = fn() => view('experience');
+$contacts = fn() => view('contacts');
+
+$blog = function () {
     $posts = \App\Models\Post::where('status', 'published')
+        ->when(Schema::hasColumn('posts', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
         ->orderBy('created_at', 'desc')
         ->get();
     $categories = \App\Models\Category::all();
     return view('blog', compact('posts', 'categories'));
-});
+};
 
-
-// Blog — solo article
-Route::get('/blog/{slug}', function ($slug) {
-    $query = \App\Models\Post::where('slug', $slug);
+$article = function (...$params) {
+    $slug = end($params);
+    $query = \App\Models\Post::where('slug', $slug)
+        ->when(Schema::hasColumn('posts', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()));
     
     if (!auth()->check()) {
         $query->where('status', 'published');
@@ -55,10 +59,10 @@ Route::get('/blog/{slug}', function ($slug) {
     }
     
     return view('article', compact('post'));
-});
+};
 
-// Portfolio Project Pages
-Route::get('/portfolio/pages/{slug}', function ($slug) {
+$portfolioPage = function (...$params) {
+    $slug = end($params);
     $query = \App\Models\PortfolioPage::where('slug', $slug);
 
     if (!auth()->check()) {
@@ -77,10 +81,10 @@ Route::get('/portfolio/pages/{slug}', function ($slug) {
         ->get();
 
     return view('page', compact('page', 'related'));
-});
+};
 
-// Page two
-Route::get('/{slug}', function ($slug) {
+$page = function (...$params) {
+    $slug = end($params);
     $query = \App\Models\Page::where('slug', $slug);
     
     if (!auth()->check()) {
@@ -94,10 +98,9 @@ Route::get('/{slug}', function ($slug) {
     }
     
     return view('page', compact('page'));
-});
+};
 
-// Feedback
-Route::post('/contacts', function (\Illuminate\Http\Request $request) {
+$feedback = function (\Illuminate\Http\Request $request) {
 
     $request->validate([
         'name'    => 'required|string|max:100',
@@ -139,14 +142,27 @@ Route::post('/contacts', function (\Illuminate\Http\Request $request) {
 
     
     return response()->json(['success' => true]);
-});
+};
 
-// Resume
-Route::get('/resume/download', [App\Http\Controllers\ResumeController::class, 'download'])
-    ->name('resume.download');
-
+$siteRoutes = function () use ($home, $skills, $portfolio, $experience, $contacts, $blog, $article, $portfolioPage, $page, $feedback) {
+    Route::get('/', $home);
+    Route::get('/skills', $skills);
+    Route::get('/portfolio', $portfolio);
+    Route::get('/experience', $experience);
+    Route::get('/contacts', $contacts);
+    Route::post('/contacts', $feedback);
+    Route::get('/blog', $blog);
+    Route::get('/blog/{slug}', $article);
+    Route::get('/portfolio/pages/{slug}', $portfolioPage);
+    Route::get('/resume/download', [App\Http\Controllers\ResumeController::class, 'download']);
+    Route::get('/{slug}', $page);
+};
 
 // hh_parser
 Route::get('/api/vacancies', [App\Http\Controllers\ParserController::class, 'search']);
 
+Route::prefix('{locale}')
+    ->whereIn('locale', $siteLocales)
+    ->group($siteRoutes);
 
+$siteRoutes();

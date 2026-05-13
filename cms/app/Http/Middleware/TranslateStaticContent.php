@@ -17,23 +17,23 @@ class TranslateStaticContent
             return $response;
         }
 
-        $locale = App::getLocale();
-        if ($locale === 'ru') {
-            return $response;
-        }
-
-        $replacements = trans('site.replacements');
-        if (! is_array($replacements) || $replacements === []) {
-            return $response;
-        }
-
         $content = $response->getContent();
         if (! is_string($content) || $content === '') {
             return $response;
         }
 
+        $locale = App::getLocale();
+        $replacements = trans('site.replacements');
+        if (! is_array($replacements)) {
+            $replacements = [];
+        }
+
         $content = str_replace('<html lang="ru">', '<html lang="' . e($locale) . '">', $content);
-        $response->setContent(strtr($content, $replacements));
+        if ($replacements !== []) {
+            $content = strtr($content, $replacements);
+        }
+
+        $response->setContent($this->injectClientTranslations($content, $locale, $replacements));
 
         return $response;
     }
@@ -45,14 +45,10 @@ class TranslateStaticContent
         }
 
         $path = trim($request->path(), '/');
-        foreach (['magbusjap', 'api', 'livewire', 'storage', 'icons', 'css', 'js', 'images', 'build', 'vendor'] as $prefix) {
+        foreach (['admin', 'magbusjap', 'api', 'livewire', 'storage', 'icons', 'css', 'js', 'images', 'build', 'vendor'] as $prefix) {
             if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
                 return false;
             }
-        }
-
-        if ($path === 'portfolio' || str_starts_with($path, 'portfolio/')) {
-            return false;
         }
 
         if (str_starts_with($path, 'blog/')) {
@@ -60,5 +56,31 @@ class TranslateStaticContent
         }
 
         return str_contains((string) $response->headers->get('Content-Type'), 'text/html');
+    }
+
+    private function injectClientTranslations(string $content, string $locale, array $replacements): string
+    {
+        if (! str_contains($content, '</head>')) {
+            return $content;
+        }
+
+        $payload = [
+            'locale' => $locale,
+            'replacements' => $replacements,
+            'client' => trans('site.client'),
+        ];
+
+        $json = json_encode(
+            $payload,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT
+        );
+
+        if (! is_string($json)) {
+            return $content;
+        }
+
+        $script = "<script>window.SITE_I18N={$json};</script>\n";
+
+        return str_replace('</head>', $script . '</head>', $content);
     }
 }
