@@ -3,10 +3,19 @@
    ========================================================================== */
 
 .skills-page {
-	padding: 5rem 1rem;
+	position: relative;
+	padding: 5rem 1rem 0;
+	min-height: calc(100vh - 13rem);
+	overflow: hidden;
+}
+
+.skills-page .container {
+	padding-bottom: 0;
 }
 
 .skills-page__header {
+	position: relative;
+	z-index: 1;
 	text-align: center;
 	margin-bottom: 3rem;
 }
@@ -14,9 +23,12 @@
 /* title and desc styles are in globals.css */
 
 .skills-page__grid {
+	position: relative;
+	z-index: 1;
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
 	gap: 1.5rem;
+	padding-bottom: 0;
 }
 
 @media (max-width: 1024px) {

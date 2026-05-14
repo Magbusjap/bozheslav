@@ -34,8 +34,6 @@
 						</p>
 					</div>
 
-					<x-growth-tree variant="skills" />
-
 					<div class="skills-page__grid">
 						<!-- Frontend -->
 						<div class="card skill-category">
@@ -304,7 +302,10 @@
 								</div>
 							</div>
 						</div>
+
+						<p class="growth-tree__caption">{{ __('skills-blade.tree.caption') }}</p>
 					</div>
+					<x-growth-tree variant="skills" />
 				</div>
 			</section>
 		</main>

@@ -2,19 +2,35 @@
 
 namespace App\Support;
 
+use App\Models\Category;
+use App\Models\Page;
+use App\Models\PortfolioCategory;
+use App\Models\PortfolioPage;
+use App\Models\PortfolioProject;
 use App\Models\Post;
 use App\Models\Trash;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
 
-class PostLocaleStatus
+class LocaleTranslationStatus
 {
-    public static function forPost(Post $post): array
+    /** @var array<class-string<Model>> */
+    private const TRANSLATABLE_MODELS = [
+        Post::class,
+        Page::class,
+        Category::class,
+        PortfolioProject::class,
+        PortfolioCategory::class,
+        PortfolioPage::class,
+    ];
+
+    public static function forModel(Model $model): array
     {
         $status = self::emptyStatus();
 
-        if ($post->translation_group_id) {
-            Post::query()
-                ->where('translation_group_id', $post->translation_group_id)
+        if (self::hasLocaleColumns($model) && $model->translation_group_id) {
+            $model::query()
+                ->where('translation_group_id', $model->translation_group_id)
                 ->pluck('locale')
                 ->each(function (?string $locale) use (&$status): void {
                     if (array_key_exists($locale, $status)) {
@@ -23,16 +39,21 @@ class PostLocaleStatus
                 });
         }
 
-        if (array_key_exists($post->locale, $status)) {
-            $status[$post->locale] = true;
+        if (self::hasLocaleColumns($model) && array_key_exists($model->locale, $status)) {
+            $status[$model->locale] = true;
         }
 
         return $status;
     }
 
+    public static function forPost(Post $post): array
+    {
+        return self::forModel($post);
+    }
+
     public static function forTrash(Trash $trash): ?array
     {
-        if ($trash->model_type !== Post::class && $trash->model_label !== 'Posts') {
+        if (! self::isTranslatableTrash($trash)) {
             return null;
         }
 
@@ -74,6 +95,24 @@ class PostLocaleStatus
         $html .= '</div>';
 
         return new HtmlString($html);
+    }
+
+    private static function isTranslatableTrash(Trash $trash): bool
+    {
+        if (in_array($trash->model_type, self::TRANSLATABLE_MODELS, true)) {
+            return true;
+        }
+
+        $data = $trash->model_data ?? [];
+
+        return isset($data['locale'], $data['translation_group_id']);
+    }
+
+    private static function hasLocaleColumns(Model $model): bool
+    {
+        return array_key_exists('locale', $model->getAttributes())
+            || array_key_exists('locale', $model->getCasts())
+            || in_array('locale', $model->getFillable(), true);
     }
 
     private static function emptyStatus(): array

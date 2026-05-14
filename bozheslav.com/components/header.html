@@ -14,8 +14,8 @@
 					<div class="nav__desktop">
 						<div class="nav__links">
 							<a href="/" class="nav__link">Главная</a>
-							<a href="/skills" class="nav__link">Умения</a>
 							<a href="/portfolio" class="nav__link">Портфолио</a>
+							<a href="/skills" class="nav__link">Умения</a>
 							<a href="/experience" class="nav__link">Опыт</a>
 							<a href="/blog" class="nav__link">Блог</a>
 							<a href="/o-razrabotchike" class="nav__link">О разработчике</a>

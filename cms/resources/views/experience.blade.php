@@ -33,8 +33,6 @@
 						</p>
 					</div>
 
-					<x-growth-tree variant="experience" />
-
 					<div class="experience-timeline">
 
 						<!-- OnFlaude CMS -->
@@ -338,6 +336,7 @@
 							{{ __('experience-blade.actions.show_more') }}
 						</button>
 					</div>
+					<x-growth-tree variant="experience" />
 				</div>
 			</section>
 		</main>

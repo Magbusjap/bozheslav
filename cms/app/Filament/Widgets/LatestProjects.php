@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\PortfolioProject;
+use App\Support\LocaleTranslationStatus;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -21,6 +22,10 @@ class LatestProjects extends BaseWidget
                 Tables\Columns\TextColumn::make('title')
                     ->label('Название')
                     ->limit(50),
+                Tables\Columns\TextColumn::make('translations')
+                    ->label('ru / eng / sr')
+                    ->state(fn (PortfolioProject $record) => LocaleTranslationStatus::indicator(LocaleTranslationStatus::forModel($record)))
+                    ->html(),
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Категория'),
                 Tables\Columns\TextColumn::make('created_at')

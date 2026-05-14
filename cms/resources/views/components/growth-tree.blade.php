@@ -9,32 +9,55 @@
 
 <div class="growth-tree growth-tree--{{ $variant }}" aria-label="{{ $label }}">
     @if ($isExperience)
-        <svg class="growth-tree__roots" viewBox="0 0 960 120" role="img" aria-hidden="true">
-            <path class="growth-tree__root-line" d="M0 68 C120 18 220 108 340 58 S560 20 700 68 S850 115 960 42" />
-            <path class="growth-tree__root-line growth-tree__root-line--thin" d="M0 92 C170 50 260 104 420 82 S680 46 960 86" />
-            <path class="growth-tree__root-line growth-tree__root-line--thin" d="M0 42 C95 66 160 34 245 50 S355 88 440 55" />
-        </svg>
-    @else
-        <div class="growth-tree__stage">
-            <svg class="growth-tree__illustration" viewBox="0 0 760 340" role="img" aria-hidden="true">
-                <path class="growth-tree__ground" d="M62 274 C160 246 244 294 344 266 S556 240 698 270" />
-                <path class="growth-tree__root-line" d="M334 266 C430 286 500 300 580 282 S700 240 760 258" />
-                <path class="growth-tree__root-line growth-tree__root-line--thin" d="M328 272 C430 328 548 324 674 306" />
-                <path class="growth-tree__root-line growth-tree__root-line--thin" d="M326 270 C246 304 156 318 82 298" />
-                <path class="growth-tree__trunk" d="M326 268 C310 226 314 188 330 146 C344 108 350 78 334 45 C378 82 390 126 382 162 C374 202 360 231 374 268 Z" />
-                <path class="growth-tree__branch" d="M350 142 C292 116 238 112 182 138" />
-                <path class="growth-tree__branch" d="M366 158 C424 118 482 96 560 100" />
-                <path class="growth-tree__branch growth-tree__branch--small" d="M348 113 C310 88 280 64 264 28" />
-                <path class="growth-tree__branch growth-tree__branch--small" d="M378 128 C420 84 456 58 510 44" />
-                <path class="growth-tree__leaf" d="M154 124 C174 92 226 98 240 134 C218 154 176 154 154 124 Z" />
-                <path class="growth-tree__leaf" d="M530 82 C564 52 626 70 632 116 C596 136 548 124 530 82 Z" />
-                <path class="growth-tree__leaf" d="M242 18 C276 -6 318 14 320 50 C290 68 252 54 242 18 Z" />
-                <path class="growth-tree__leaf" d="M492 34 C520 4 572 12 584 52 C554 74 512 68 492 34 Z" />
-                <path class="growth-tree__face" d="M336 174 C348 182 364 182 376 174" />
-                <path class="growth-tree__eye" d="M330 150 C338 156 346 156 354 150" />
-                <path class="growth-tree__eye" d="M362 150 C370 156 378 156 386 150" />
+        <div class="growth-tree__trail growth-tree__trail--experience" aria-hidden="true">
+            <svg class="growth-tree__trail-svg" viewBox="0 0 1280 150" preserveAspectRatio="none">
+                <path class="growth-tree__path-line" d="M0 104 C150 72 250 122 380 92 S610 48 770 92 S1000 128 1280 86" />
+                <path class="growth-tree__path-line growth-tree__path-line--thin" d="M0 124 C210 86 330 134 540 110 S880 72 1280 116" />
             </svg>
-            <p class="growth-tree__caption">{{ __('skills-blade.tree.caption') }}</p>
+            <svg class="growth-tree__python-figure growth-tree__python-figure--experience" viewBox="0 0 190 46">
+                <path class="growth-tree__python-body" d="M6 26 C30 6 66 7 94 24 S142 39 176 19" />
+                <path class="growth-tree__python-belly" d="M24 26 C48 14 72 15 96 27" />
+                <ellipse class="growth-tree__python-head" cx="180" cy="18" rx="15" ry="11" />
+                <circle class="growth-tree__python-eye" cx="185" cy="15" r="2" />
+                <path class="growth-tree__python-smile" d="M185 23 C188 25 192 24 195 21" />
+            </svg>
         </div>
+    @else
+        <div class="growth-tree__trail growth-tree__trail--skills" aria-hidden="true">
+            <svg class="growth-tree__trail-svg" viewBox="0 0 1100 190" preserveAspectRatio="none">
+                <path class="growth-tree__path-line" d="M0 154 C120 130 250 174 374 145 S598 120 742 148 S952 176 1100 132" />
+                <path class="growth-tree__path-line growth-tree__path-line--thin" d="M0 178 C170 156 282 184 420 166 S654 140 802 168 S1000 182 1100 160" />
+            </svg>
+            <svg class="growth-tree__python-figure growth-tree__python-figure--skills" viewBox="0 0 170 42">
+                <path class="growth-tree__python-body" d="M5 24 C26 8 58 8 82 23 S124 34 156 17" />
+                <path class="growth-tree__python-belly" d="M22 24 C42 14 62 15 83 25" />
+                <ellipse class="growth-tree__python-head" cx="160" cy="16" rx="13" ry="10" />
+                <circle class="growth-tree__python-eye" cx="164" cy="13" r="1.8" />
+                <path class="growth-tree__python-smile" d="M164 20 C167 22 171 21 174 18" />
+            </svg>
+        </div>
+        <div class="growth-tree__stage">
+            <svg class="growth-tree__sapling" viewBox="0 0 260 285" role="img" aria-hidden="true">
+                <ellipse class="growth-tree__shadow" cx="130" cy="253" rx="92" ry="18" />
+                <path class="growth-tree__ground" d="M36 250 C74 230 112 261 154 244 S218 238 240 250" />
+                <path class="growth-tree__trunk" d="M111 248 C89 196 93 132 120 82 C134 57 139 35 127 15 C167 44 184 86 175 126 C165 172 148 199 157 248 Z" />
+                <path class="growth-tree__trunk-mark" d="M121 205 C128 199 137 199 143 206" />
+                <path class="growth-tree__trunk-mark" d="M130 160 C136 153 146 154 151 162" />
+                <g class="growth-tree__sway">
+                    <path class="growth-tree__branch" d="M130 124 C94 95 54 90 25 111" />
+                    <path class="growth-tree__branch" d="M154 137 C190 104 221 94 251 104" />
+                    <path class="growth-tree__branch growth-tree__branch--small" d="M141 92 C117 68 104 48 101 22" />
+                    <path class="growth-tree__branch growth-tree__branch--small" d="M160 101 C183 68 208 52 237 48" />
+                    <path class="growth-tree__leaf growth-tree__leaf--light" d="M10 97 C28 52 82 52 99 92 C80 125 32 124 10 97 Z" />
+                    <path class="growth-tree__leaf growth-tree__leaf--main" d="M64 53 C76 5 145 -8 171 36 C158 83 100 102 64 53 Z" />
+                    <path class="growth-tree__leaf growth-tree__leaf--main" d="M142 37 C177 -2 239 16 249 68 C212 95 159 84 142 37 Z" />
+                    <path class="growth-tree__leaf growth-tree__leaf--dark" d="M177 92 C214 57 273 77 276 129 C235 155 190 137 177 92 Z" />
+                    <path class="growth-tree__leaf growth-tree__leaf--dark" d="M98 98 C137 65 198 85 204 138 C166 164 113 151 98 98 Z" />
+                    <path class="growth-tree__leaf-shine" d="M83 41 C101 22 133 21 151 42" />
+                    <path class="growth-tree__leaf-shine" d="M169 62 C188 47 214 49 231 68" />
+                </g>
+            </svg>
+        </div>
+        <x-living-bird variant="skills" />
     @endif
 </div>

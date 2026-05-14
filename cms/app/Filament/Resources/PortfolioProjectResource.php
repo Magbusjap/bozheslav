@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PortfolioProjectResource\Pages;
 use App\Filament\Resources\Concerns\HasTranslatableResource;
 use App\Models\PortfolioProject;
+use App\Support\LocaleTranslationStatus;
 use Awcodes\Curator\Components\Forms\CuratorPicker;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -125,6 +126,11 @@ class PortfolioProjectResource extends Resource
                     ->url(fn (PortfolioProject $record): ?string => $record->isTranslationPlaceholder()
                         ? null
                         : Pages\EditPortfolioProject::getUrl(['record' => $record])),
+                Tables\Columns\TextColumn::make('translations')
+                    ->label('ru / eng / sr')
+                    ->state(fn (PortfolioProject $record) => LocaleTranslationStatus::indicator(LocaleTranslationStatus::forModel($record)))
+                    ->html()
+                    ->extraAttributes(fn (PortfolioProject $record): array => self::placeholderCellAttributes($record)),
                 self::localeTableColumn(),
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Категория')

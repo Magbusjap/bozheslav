@@ -99,6 +99,7 @@
 
 						<!-- 2/3 — detail -->
 						<div class="projects__detail">
+							<x-living-bird variant="portfolio" />
 							@foreach($projects as $index => $project)
 							<div class="project-detail card {{ $index === 0 ? 'active' : '' }}" id="project-{{ $index }}">
 								<div class="project-detail__image-wrap">

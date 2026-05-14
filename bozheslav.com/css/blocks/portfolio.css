@@ -22,6 +22,10 @@
 	align-items: stretch;
 }
 
+.projects__detail {
+	position: relative;
+}
+
 /* === Sidebar === */
 
 .projects__sidebar {
