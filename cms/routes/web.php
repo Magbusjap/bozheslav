@@ -6,6 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 $siteLocales = ['ru', 'en', 'sr'];
 
+if (! function_exists('contactCaptcha')) {
+    function contactCaptcha(): array
+    {
+        $left = random_int(2, 9);
+        $right = random_int(2, 9);
+
+        session(['contact_captcha_answer' => $left + $right]);
+
+        return [
+            'question' => "{$left} + {$right}",
+        ];
+    }
+}
+
 $home = function () {
     $posts = \App\Models\Post::where('status', 'published')
         ->when(Schema::hasColumn('posts', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
@@ -16,7 +30,9 @@ $home = function () {
         ->when(Schema::hasColumn('portfolio_projects', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
         ->orderBy('sort_order')
         ->get();
-    return view('index', compact('posts', 'projects'));
+    $contactCaptcha = contactCaptcha();
+
+    return view('index', compact('posts', 'projects', 'contactCaptcha'));
 };
 
 $skills = fn() => view('skills');
@@ -34,7 +50,7 @@ $portfolio = function () {
 };
 
 $experience = fn() => view('experience');
-$contacts = fn() => view('contacts');
+$contacts = fn() => view('contacts', ['contactCaptcha' => contactCaptcha()]);
 
 $blog = function () {
     $posts = \App\Models\Post::where('status', 'published')
@@ -166,15 +182,29 @@ $feedback = function (\Illuminate\Http\Request $request) {
         'subject' => 'required|string|max:200',
         'message' => 'nullable|string|max:2000',
         'honeypot' => 'max:0', // защита от спамботов
+        'privacy_consent' => 'accepted',
+        'captcha_answer' => 'required|integer',
     ]);
 
-    \Illuminate\Support\Facades\Mail::to('i@mankudinov.ru')
-        ->send(new \App\Mail\ContactFormMail(
-            senderName:   $request->name,
-            senderEmail:  $request->email,
-            mailSubject:  $request->subject ?? 'Без темы',
-            mailMessage:  $request->message,
-        ));
+    if ((int) $request->input('captcha_answer') !== (int) session('contact_captcha_answer')) {
+        throw \Illuminate\Validation\ValidationException::withMessages([
+            'captcha_answer' => 'Проверьте защитный вопрос и попробуйте ещё раз.',
+        ]);
+    }
+
+    session()->forget('contact_captcha_answer');
+
+    try {
+        \Illuminate\Support\Facades\Mail::to(option('contact_email', 'i@mankudinov.ru'))
+            ->send(new \App\Mail\ContactFormMail(
+                senderName:   $request->name,
+                senderEmail:  $request->email,
+                mailSubject:  $request->subject ?? 'Без темы',
+                mailMessage:  $request->message,
+            ));
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::error('Contact form mail error: ' . $e->getMessage());
+    }
 
 
     //  Send in the Telegram

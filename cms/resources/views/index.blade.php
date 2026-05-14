@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="google-site-verification" content="3Ka3wmDabuO6R6kev1UuxPrWy5PKznexHg3VKEZfIGI" />
-		<meta name="yandex-verification" content="102f35d468ef751b" />
+		<meta name="yandex-verification" content="723393848cfee4cc" />
 		<meta name="csrf-token" content="{{ csrf_token() }}">
 		<link rel="stylesheet" href="/css/index.css" />
 		<link rel="shortcut icon" href="/icons/favicon.ico" type="image/x-icon" />
@@ -81,8 +81,7 @@
 							</div>
 
 							<div class="hero__actions">
-								 <!-- href="{{ option('hero_resume_url', '#') }}" -->
-								<a href="/resume/download" class="btn btn--primary btn--lg">
+								<a href="{{ '/' . app()->getLocale() . '/resume/download' }}" class="btn btn--primary btn--lg">
 									<svg
 										class="btn__icon"
 										width="20"
@@ -764,6 +763,42 @@
 									</div>
 								</div>
 							</div>
+							<div class="contacts__socials">
+								<strong class="contacts__find">Вы можете найти меня здесь:</strong>
+								<div class="hero__socials">
+									<a 
+										href="{{ option('social_github', '#') }}" 
+										class="btn btn--ghost btn--icon btn--circle" 
+										aria-label="GitHub"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										<svg class="sprites" aria-hidden="true">
+											<use href="/icons/sprites.svg#github"></use>
+										</svg>
+									</a>
+									<a 
+										href="{{ option('social_telegram', '#') }}" 
+										class="btn btn--ghost btn--icon btn--circle" 
+										aria-label="Telegram"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										<svg class="sprites" aria-hidden="true">
+											<use href="/icons/sprites.svg#telegram"></use>
+										</svg>
+									</a>
+									<a 
+										href="{{ option('social_email', '#') }}" 
+										class="btn btn--ghost btn--icon btn--circle" 
+										aria-label="Email"
+									>
+										<svg class="sprites" aria-hidden="true">
+											<use href="/icons/sprites.svg#email"></use>
+										</svg>
+									</a>
+								</div>
+							</div>
 						</div>
 
 						<!-- Form card -->
@@ -793,13 +828,35 @@
 											required
 										/>
 									</div>
-									<input class="input" type="text" name="subject" placeholder="Тема письма *" />
+									<input class="input" type="text" name="subject" placeholder="Тема письма *" required />
 									<textarea
 										class="input input--textarea"
 										name="message"
 										placeholder="Ваше сообщение"
 										rows="5"
 									></textarea>
+									<div class="form-captcha">
+										<label class="form-captcha__label" for="captcha_answer">
+											Защитный вопрос: {{ $contactCaptcha['question'] ?? '2 + 2' }} = ?
+										</label>
+										<input
+											class="input"
+											id="captcha_answer"
+											type="number"
+											name="captcha_answer"
+											inputmode="numeric"
+											autocomplete="off"
+											placeholder="Ответ *"
+											required
+										/>
+									</div>
+									<label class="form-consent">
+										<input class="form-consent__checkbox" type="checkbox" name="privacy_consent" value="1" required />
+										<span>
+											Отправляя форму, вы соглашаетесь на обработку сообщения и обратную связь в соответствии с
+											<a href="/privacy" target="_blank" rel="noopener noreferrer">политикой конфиденциальности</a>.
+										</span>
+									</label>
 									<button type="submit" class="btn btn--primary btn--full">
 										<svg class="sprites badge__icon" aria-hidden="true">
 											<use href="/icons/sprites.svg#telegram"></use>
@@ -811,42 +868,6 @@
 						</div>
 					</div>
 
-					<div class="contacts__socials">
-						<strong class="contacts__find">Вы можете найти меня здесь:</strong>
-						<div class="hero__socials">
-							<a 
-								href="{{ option('social_github', '#') }}" 
-								class="btn btn--ghost btn--icon btn--circle" 
-								aria-label="GitHub"
-								target="_blank"
-    							rel="noopener noreferrer"
-							>
-								<svg class="sprites" aria-hidden="true">
-									<use href="/icons/sprites.svg#github"></use>
-								</svg>
-							</a>
-							<a 
-								href="{{ option('social_telegram', '#') }}" 
-								class="btn btn--ghost btn--icon btn--circle" 
-								aria-label="Telegram"
-								target="_blank"
-    							rel="noopener noreferrer"
-							>
-								<svg class="sprites" aria-hidden="true">
-									<use href="/icons/sprites.svg#telegram"></use>
-								</svg>
-							</a>
-							<a 
-								href="{{ option('social_email', '#') }}" 
-								class="btn btn--ghost btn--icon btn--circle" 
-								aria-label="Email"
-							>
-								<svg class="sprites" aria-hidden="true">
-									<use href="/icons/sprites.svg#email"></use>
-								</svg>
-							</a>
-						</div>
-					</div>
 				</div>
 			</section>
 		</main>

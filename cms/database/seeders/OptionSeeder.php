@@ -25,9 +25,12 @@ class OptionSeeder extends Seeder
             ['key' => 'hero_hire_url',      'label' => 'Ссылка "Нанять"',     'group' => 'hero', 'value' => '/contacts'],
 
             // Контакты
-            ['key' => 'contact_email', 'label' => 'Почта',    'group' => 'contacts', 'value' => 'you@example.com'],
-            ['key' => 'contact_phone', 'label' => 'Телефон',  'group' => 'contacts', 'value' => '+7 (000) 000-00-00'],
-            ['key' => 'contact_city',  'label' => 'Город',    'group' => 'contacts', 'value' => 'Пермь, Россия · Удалённая работа'],
+            ['key' => 'contact_email',    'label' => 'Почта',    'group' => 'contacts', 'value' => 'you@example.com'],
+            ['key' => 'contact_email_ru', 'label' => 'Почта RU', 'group' => 'contacts', 'value' => 'i@mankudinov.ru'],
+            ['key' => 'contact_email_en', 'label' => 'Почта EN', 'group' => 'contacts', 'value' => 'magbusjap@gmail.com'],
+            ['key' => 'contact_email_sr', 'label' => 'Почта SR', 'group' => 'contacts', 'value' => 'magbusjap@gmail.com'],
+            ['key' => 'contact_phone',    'label' => 'Телефон',  'group' => 'contacts', 'value' => '+7 (000) 000-00-00'],
+            ['key' => 'contact_city',     'label' => 'Город',    'group' => 'contacts', 'value' => 'Пермь, Россия · Удалённая работа'],
 
             // Общее
             ['key' => 'site_copyright', 'label' => 'Копирайт футера', 'group' => 'general', 'value' => '© 2025 Михаил Божеслав'],

@@ -25,6 +25,8 @@ export function initForm() {
                     subject:  form.querySelector('[name="subject"]').value,
                     message:  form.querySelector('[name="message"]').value,
                     honeypot: form.querySelector('[name="honeypot"]')?.value ?? '',
+                    captcha_answer: form.querySelector('[name="captcha_answer"]')?.value ?? '',
+                    privacy_consent: form.querySelector('[name="privacy_consent"]')?.checked ? '1' : '',
                 }),
             });
 

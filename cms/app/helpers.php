@@ -5,6 +5,22 @@ use Illuminate\Support\Facades\Process;
 if (!function_exists('option')) {
     function option(string $key, ?string $default = null): ?string
     {
+        if ($key === 'contact_email') {
+            $locale = app()->getLocale();
+
+            if (in_array($locale, ['ru', 'en', 'sr'], true)) {
+                $localizedValue = \App\Models\Option::get($key . '_' . $locale);
+
+                if (is_string($localizedValue) && trim($localizedValue) !== '') {
+                    return $localizedValue;
+                }
+            }
+
+            if (in_array($locale, ['en', 'sr'], true)) {
+                return 'magbusjap@gmail.com';
+            }
+        }
+
         return \App\Models\Option::get($key, $default);
     }
 }

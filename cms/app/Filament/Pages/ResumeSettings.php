@@ -5,6 +5,8 @@ namespace App\Filament\Pages;
 use App\Models\Option;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Tabs;
+use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -26,8 +28,12 @@ class ResumeSettings extends Page implements HasForms
 
     public function mount(): void
     {
+        $legacyResume = Option::get('resume_pdf');
+
         $this->form->fill([
-            'resume_pdf' => Option::get('resume_pdf'),
+            'resume_pdf_ru' => Option::get('resume_pdf_ru', $legacyResume),
+            'resume_pdf_en' => Option::get('resume_pdf_en'),
+            'resume_pdf_sr' => Option::get('resume_pdf_sr'),
         ]);
     }
 
@@ -35,19 +41,25 @@ class ResumeSettings extends Page implements HasForms
     {
         return $form
             ->schema([
-                Section::make('PDF резюме')
-                    ->description('Загрузите PDF-файл. Кнопка «Скачать моё резюме» на сайте будет отдавать этот файл.')
+                Section::make('PDF резюме по языкам')
+                    ->description('Загрузите отдельный PDF для каждого языка. Кнопка «Скачать моё резюме» будет отдавать файл текущей языковой версии сайта.')
                     ->icon('heroicon-o-document-arrow-down')
                     ->schema([
-                        FileUpload::make('resume_pdf')
-                            ->label('Файл резюме (.pdf)')
-                            ->disk('public')
-                            ->directory('resumes')
-                            ->acceptedFileTypes(['application/pdf'])
-                            ->maxSize(5120)
-                            ->downloadable()
-                            ->deletable(true)
-                            ->helperText('Максимум 5 МБ.')
+                        Tabs::make('Языки резюме')
+                            ->tabs([
+                                Tab::make('RU')
+                                    ->schema([
+                                        $this->resumeUpload('resume_pdf_ru', 'Резюме на русском (.pdf)', '/ru/resume/download'),
+                                    ]),
+                                Tab::make('EN')
+                                    ->schema([
+                                        $this->resumeUpload('resume_pdf_en', 'Resume in English (.pdf)', '/en/resume/download'),
+                                    ]),
+                                Tab::make('SR')
+                                    ->schema([
+                                        $this->resumeUpload('resume_pdf_sr', 'CV na srpskom (.pdf)', '/sr/resume/download'),
+                                    ]),
+                            ])
                             ->columnSpanFull(),
                     ]),
             ])
@@ -58,11 +70,26 @@ class ResumeSettings extends Page implements HasForms
     {
         $data = $this->form->getState();
 
+        foreach ([
+            'resume_pdf_ru' => 'Резюме RU (PDF)',
+            'resume_pdf_en' => 'Резюме EN (PDF)',
+            'resume_pdf_sr' => 'Резюме SR (PDF)',
+        ] as $key => $label) {
+            Option::updateOrCreate(
+                ['key' => $key],
+                [
+                    'value' => $data[$key] ?? null,
+                    'label' => $label,
+                    'group' => 'general',
+                ]
+            );
+        }
+
         Option::updateOrCreate(
             ['key' => 'resume_pdf'],
             [
-                'value' => $data['resume_pdf'] ?? null,
-                'label' => 'Резюме (PDF)',
+                'value' => $data['resume_pdf_ru'] ?? null,
+                'label' => 'Резюме (PDF, legacy)',
                 'group' => 'general',
             ]
         );
@@ -71,5 +98,19 @@ class ResumeSettings extends Page implements HasForms
             ->title('Резюме сохранено')
             ->success()
             ->send();
+    }
+
+    private function resumeUpload(string $key, string $label, string $url): FileUpload
+    {
+        return FileUpload::make($key)
+            ->label($label)
+            ->disk('public')
+            ->directory('resumes')
+            ->acceptedFileTypes(['application/pdf'])
+            ->maxSize(5120)
+            ->downloadable()
+            ->deletable(true)
+            ->helperText('Ссылка: ' . $url . '. Максимум 5 МБ.')
+            ->columnSpanFull();
     }
 }
