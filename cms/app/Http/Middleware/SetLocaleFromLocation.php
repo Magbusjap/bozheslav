@@ -24,6 +24,10 @@ class SetLocaleFromLocation
 
         App::setLocale($locale);
 
+        if ($this->shouldRedirectToLocalizedPath($request)) {
+            return redirect($this->localizedUrl($request, $locale));
+        }
+
         return $next($request);
     }
 
@@ -107,5 +111,48 @@ class SetLocaleFromLocation
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    private function shouldRedirectToLocalizedPath(Request $request): bool
+    {
+        if (! $request->isMethod('GET') && ! $request->isMethod('HEAD')) {
+            return false;
+        }
+
+        if ($this->localeFromPath($request) !== null) {
+            return false;
+        }
+
+        $path = trim($request->path(), '/');
+        $prefix = explode('/', $path)[0] ?? '';
+
+        if ($path !== '' && str_contains(basename($path), '.')) {
+            return false;
+        }
+
+        return ! in_array($prefix, [
+            'admin',
+            'magbusjap',
+            'api',
+            'components',
+            'livewire',
+            'storage',
+            'icons',
+            'css',
+            'js',
+            'images',
+            'build',
+            'vendor',
+            'up',
+        ], true);
+    }
+
+    private function localizedUrl(Request $request, string $locale): string
+    {
+        $path = trim($request->path(), '/');
+        $url = '/' . $locale . ($path === '' ? '' : '/' . $path);
+        $query = $request->getQueryString();
+
+        return $query ? $url . '?' . $query : $url;
     }
 }

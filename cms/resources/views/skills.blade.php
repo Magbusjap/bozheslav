@@ -7,7 +7,7 @@
 		<meta name="yandex-verification" content="102f35d468ef751b" />
 		<link rel="stylesheet" href="/css/index.css" />
 		<link rel="shortcut icon" href="/icons/favicon.ico" type="image/x-icon" />
-		<title>Умения — Михаил Божеслав</title>
+		<title>{{ __('skills-blade.page_title') }}</title>
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-2M9GZV0JW3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-2M9GZV0JW3");</script>
 <script type="text/javascript">(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js?id=108285091","ym");ym(108285091,"init",{webvisor:true,clickmap:true,accurateTrackBounce:true,trackLinks:true});</script>
@@ -17,7 +17,7 @@
 		@auth
 		<x-admin-bar 
 			:editUrl="'/admin'"
-			editLabel="Редактировать страницу"
+			:editLabel="__('common-blade.edit_page')"
 		/>
 		@endauth
 
@@ -28,12 +28,13 @@
 			<section class="section skills-page" id="skills">
 				<div class="container skills-page__container">
 					<div class="skills-page__header">
-						<h1 class="skills-page__title">Навыки</h1>
+						<h1 class="skills-page__title">{{ __('skills-blade.title') }}</h1>
 						<p class="skills-page__desc">
-							Технологии и инструменты, которыми я владею. Нажмите на любой
-							навык чтобы узнать подробнее.
+							{{ __('skills-blade.description') }}
 						</p>
 					</div>
+
+					<x-growth-tree variant="skills" />
 
 					<div class="skills-page__grid">
 						<!-- Frontend -->
@@ -203,7 +204,7 @@
 											<use href="/icons/sprites.svg#frameworks"></use>
 										</svg>
 									</span>
-									Автоматизация
+									{{ __('skills-blade.categories.automation') }}
 								</h2>
 							</div>
 							<div class="card__body">
@@ -255,7 +256,7 @@
 											<use href="/icons/sprites.svg#base-data"></use>
 										</svg>
 									</span>
-									Базы данных
+									{{ __('skills-blade.categories.databases') }}
 								</h2>
 							</div>
 							<div class="card__body">
@@ -283,7 +284,7 @@
 											<use href="/icons/sprites.svg#cloud"></use>
 										</svg>
 									</span>
-									Ранее
+									{{ __('skills-blade.categories.earlier') }}
 								</h2>
 							</div>
 							<div class="card__body">
@@ -315,7 +316,7 @@
 				<button
 					class="skill-modal__close"
 					id="skillModalClose"
-					aria-label="Закрыть"
+					aria-label="{{ __('skills-blade.modal.close') }}"
 				>
 					<svg class="sprites badge__icon" aria-hidden="true">
 						<use href="/icons/sprites.svg#cross"></use>

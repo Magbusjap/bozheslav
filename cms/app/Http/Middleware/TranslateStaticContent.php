@@ -9,6 +9,31 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TranslateStaticContent
 {
+    private const BLADE_FILES = [
+        'common-blade',
+        'header-blade',
+        'footer-blade',
+        'index-blade',
+        'blog-page-blade',
+        'article-page-blade',
+        'contact-page-blade',
+        'page-blade',
+        'skills-blade',
+        'experience-blade',
+        'portfolio-blade',
+        'errors-blade',
+        'legal-page-blade',
+    ];
+
+    private const JS_FILES = [
+        'header-js',
+        'cookie-banner-js',
+        'skill-levels-js',
+        'modal-skills-js',
+        'experience-page-js',
+        'not-found-js',
+    ];
+
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
@@ -23,10 +48,7 @@ class TranslateStaticContent
         }
 
         $locale = App::getLocale();
-        $replacements = trans('site.replacements');
-        if (! is_array($replacements)) {
-            $replacements = [];
-        }
+        $replacements = $this->collectBladeReplacements();
 
         $content = str_replace('<html lang="ru">', '<html lang="' . e($locale) . '">', $content);
         if ($replacements !== []) {
@@ -40,7 +62,7 @@ class TranslateStaticContent
 
     private function shouldTranslate(Request $request, Response $response): bool
     {
-        if (! $response->isSuccessful()) {
+        if (! $response->isSuccessful() && $response->getStatusCode() !== 404) {
             return false;
         }
 
@@ -51,7 +73,8 @@ class TranslateStaticContent
             }
         }
 
-        if (str_starts_with($path, 'blog/')) {
+        $pathWithoutLocale = preg_replace('#^(ru|en|sr)(/|$)#', '', $path);
+        if (is_string($pathWithoutLocale) && str_starts_with($pathWithoutLocale, 'blog/')) {
             return false;
         }
 
@@ -67,7 +90,7 @@ class TranslateStaticContent
         $payload = [
             'locale' => $locale,
             'replacements' => $replacements,
-            'client' => trans('site.client'),
+            'js' => $this->collectSection('js', self::JS_FILES),
         ];
 
         $json = json_encode(
@@ -82,5 +105,68 @@ class TranslateStaticContent
         $script = "<script>window.SITE_I18N={$json};</script>\n";
 
         return str_replace('</head>', $script . '</head>', $content);
+    }
+
+    /**
+     * @param  array<int, string>  $files
+     * @return array<string, mixed>
+     */
+    private function collectSection(string $section, array $files): array
+    {
+        $collected = [];
+
+        foreach ($files as $file) {
+            $values = trans($file . '.' . $section);
+
+            if (is_array($values)) {
+                $collected = array_replace_recursive($collected, $values);
+            }
+        }
+
+        return $collected;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function collectBladeReplacements(): array
+    {
+        $replacements = [];
+
+        foreach (self::BLADE_FILES as $file) {
+            $blade = trans($file . '.blade');
+            if (is_array($blade)) {
+                $replacements = array_replace($replacements, $this->flattenStringMap($blade));
+            }
+
+            $legacy = trans($file . '.replacements');
+            if (is_array($legacy)) {
+                $replacements = array_replace($replacements, $legacy);
+            }
+        }
+
+        return $replacements;
+    }
+
+    /**
+     * @param  array<mixed>  $values
+     * @return array<string, string>
+     */
+    private function flattenStringMap(array $values): array
+    {
+        $flat = [];
+
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $flat = array_replace($flat, $this->flattenStringMap($value));
+                continue;
+            }
+
+            if (is_string($key) && is_string($value)) {
+                $flat[$key] = $value;
+            }
+        }
+
+        return $flat;
     }
 }

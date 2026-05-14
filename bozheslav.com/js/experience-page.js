@@ -1,6 +1,13 @@
 const INITIAL_COUNT = 5;
 const LOAD_MORE_COUNT = 3;
 
+function getExperienceText(key, fallback) {
+	return (
+		window.SITE_I18N?.js?.experiencePage?.[key] ??
+		fallback
+	);
+}
+
 function getEntries() {
 	return Array.from(document.querySelectorAll(".exp-entry"));
 }
@@ -25,7 +32,7 @@ function renderEntries(visibleCount) {
 		btn.style.display = "none";
 	} else {
 		btn.style.display = "inline-flex";
-		btn.textContent = `Показать ещё...`;
+		btn.textContent = getExperienceText("showMore", "Показать ещё...");
 	}
 }
 

@@ -212,7 +212,7 @@ const SKILLS = {
 
 
 function getLevelLabel(level) {
-	const levels = window.SITE_I18N?.client?.levels || {};
+	const levels = window.SITE_I18N?.js?.skillLevels || {};
 	if (level >= 80) return levels.confident || "Уверенно";
 	if (level >= 60) return levels.good || "Хорошо";
 	if (level >= 40) return levels.progress || "В процессе";
@@ -244,7 +244,7 @@ function getTranslatedSkill(skillKey) {
 	const skill = SKILLS[skillKey];
 	if (!skill) return null;
 
-	const translated = window.SITE_I18N?.client?.skills?.[skillKey] || {};
+	const translated = window.SITE_I18N?.js?.modalSkills?.[skillKey] || {};
 
 	return {
 		...skill,

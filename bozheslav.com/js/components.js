@@ -48,6 +48,7 @@ export function initLanguageSwitchers(root = document) {
 		switcher.querySelectorAll("[data-locale-option]").forEach((option) => {
 			const locale = option.dataset.localeOption;
 			option.href = buildLocaleUrl(locale);
+			option.textContent = localeOptionLabel(currentLocale, locale);
 			option.toggleAttribute("aria-current", locale === currentLocale);
 			option.hidden = locale === currentLocale;
 		});
@@ -130,4 +131,11 @@ function buildLocaleUrl(locale) {
 	url.pathname = `/${locale}${cleanPath === "/" ? "" : cleanPath}`;
 
 	return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function localeOptionLabel(currentLocale, targetLocale) {
+	return (
+		window.SITE_I18N?.js?.header?.localeOptions?.[targetLocale] ||
+		targetLocale.toUpperCase()
+	);
 }

@@ -32,7 +32,6 @@
     </main>
 
     <div id="footer"></div>
-    <script src="/js/index.js" type="module"></script>
+    <script src="/js/index.js?v=20260514-locale" type="module"></script>
 </body>
 </html>
-

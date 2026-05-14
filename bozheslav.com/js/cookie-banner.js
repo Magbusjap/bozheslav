@@ -1,7 +1,7 @@
 export function initCookieBanner() {
     if (localStorage.getItem('cookies_accepted')) return;
 
-    const cookie = window.SITE_I18N?.client?.cookie || {};
+    const cookie = window.SITE_I18N?.js?.cookieBanner || {};
     const text = cookie.text || 'Для улучшения работы сайта используются cookie файлы. Пожалуйста, прочитте:';
     const link = cookie.link || 'Политика конфиденциальности';
     const accept = cookie.accept || 'Принять';

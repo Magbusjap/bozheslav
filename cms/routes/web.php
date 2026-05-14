@@ -59,6 +59,11 @@ $article = function (...$params) {
     $post = $query->first();
     
     if (!$post) {
+        $redirect = localizedRecordRedirect(\App\Models\Post::class, $slug, app()->getLocale(), fn ($record) => '/' . $record->locale . '/blog/' . $record->slug);
+        if ($redirect) {
+            return $redirect;
+        }
+
         abort(404);
     }
     
@@ -77,6 +82,11 @@ $portfolioPage = function (...$params) {
     $page = $query->first();
 
     if (!$page) {
+        $redirect = localizedRecordRedirect(\App\Models\PortfolioPage::class, $slug, app()->getLocale(), fn ($record) => '/' . $record->locale . '/portfolio/pages/' . $record->slug);
+        if ($redirect) {
+            return $redirect;
+        }
+
         abort(404);
     }
 
@@ -101,11 +111,52 @@ $page = function (...$params) {
     $page = $query->first();
     
     if (!$page) {
+        $redirect = localizedRecordRedirect(\App\Models\Page::class, $slug, app()->getLocale(), fn ($record) => '/' . $record->locale . '/' . $record->slug);
+        if ($redirect) {
+            return $redirect;
+        }
+
         abort(404);
     }
     
     return view('page', compact('page'));
 };
+
+if (! function_exists('localizedRecordRedirect')) {
+    function localizedRecordRedirect(string $modelClass, string $slug, string $locale, callable $urlBuilder): ?\Illuminate\Http\RedirectResponse
+    {
+        $model = new $modelClass();
+
+        if (! Schema::hasColumn($model->getTable(), 'locale') || ! Schema::hasColumn($model->getTable(), 'translation_group_id')) {
+            return null;
+        }
+
+        $sourceQuery = $modelClass::query()
+            ->where('slug', $slug)
+            ->where('locale', '!=', $locale);
+
+        if (! auth()->check() && Schema::hasColumn($model->getTable(), 'status')) {
+            $sourceQuery->where('status', 'published');
+        }
+
+        $source = $sourceQuery->first();
+        if (! $source?->translation_group_id) {
+            return null;
+        }
+
+        $targetQuery = $modelClass::query()
+            ->where('translation_group_id', $source->translation_group_id)
+            ->where('locale', $locale);
+
+        if (! auth()->check() && Schema::hasColumn($model->getTable(), 'status')) {
+            $targetQuery->where('status', 'published');
+        }
+
+        $target = $targetQuery->first();
+
+        return $target ? redirect($urlBuilder($target)) : null;
+    }
+}
 
 $feedback = function (\Illuminate\Http\Request $request) {
 
