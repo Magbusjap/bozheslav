@@ -55,7 +55,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 'Портфолио',
                 'Аналитика',
-                'Отслеживание',
+                'Мониторинг',
                 'Рассылки',
                 'Боты и AI',
                 'Профиль',

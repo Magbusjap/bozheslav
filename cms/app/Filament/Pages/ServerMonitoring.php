@@ -8,7 +8,7 @@ class ServerMonitoring extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-shield-check';
     protected static ?string $navigationLabel = 'Отслеживание';
-    protected static ?string $navigationGroup = 'Отслеживание';
+    protected static ?string $navigationGroup = 'Мониторинг';
     protected static ?int $navigationSort = 1;
     protected static ?string $title = 'Отслеживание';
     protected static string $view = 'filament.pages.server-monitoring';
@@ -170,6 +170,95 @@ class ServerMonitoring extends Page
             'software'       => $software,
             'period'         => $this->period,
             'trustedIps'     => $this->trustedIps,
+            'backupStatus'   => $this->getBackupStatus(),
         ];
+    }
+
+    private function getBackupStatus(): array
+    {
+        $localBackup = $this->latestFile('/var/www/bozheslav/backups', '*.sql');
+        $mailArchive = $this->latestFile('/var/backups/bozheslav-mail', '*.tar.gz');
+        $mailParts = glob('/var/backups/bozheslav-mail/*.part-*') ?: [];
+        $mailSettings = storage_path('app/backup-mail/settings.env');
+        $mailLog = '/var/log/bozheslav-mail-backup.log';
+
+        return [
+            'local' => [
+                'path' => $localBackup['path'],
+                'size' => $localBackup['size'],
+                'modified' => $localBackup['modified'],
+                'isFresh' => $localBackup['timestamp'] && $localBackup['timestamp'] >= now()->subDay()->timestamp,
+            ],
+            'mail' => [
+                'path' => $mailArchive['path'],
+                'size' => $mailArchive['size'],
+                'modified' => $mailArchive['modified'],
+                'partsCount' => count($mailParts),
+                'isFresh' => $mailArchive['timestamp'] && $mailArchive['timestamp'] >= now()->subDay()->timestamp,
+                'settingsExists' => file_exists($mailSettings),
+                'passwordConfigured' => $this->backupPasswordConfigured($mailSettings),
+                'lastLog' => $this->tailFile($mailLog, 12),
+            ],
+        ];
+    }
+
+    private function latestFile(string $directory, string $pattern): array
+    {
+        $files = glob(rtrim($directory, '/') . '/' . $pattern) ?: [];
+        $files = array_filter($files, 'is_file');
+
+        if ($files === []) {
+            return [
+                'path' => null,
+                'size' => '—',
+                'modified' => '—',
+                'timestamp' => null,
+            ];
+        }
+
+        usort($files, fn (string $a, string $b): int => filemtime($b) <=> filemtime($a));
+
+        $path = $files[0];
+        $timestamp = filemtime($path);
+
+        return [
+            'path' => $path,
+            'size' => $this->formatBytes(filesize($path) ?: 0),
+            'modified' => date('d.m.Y H:i', $timestamp),
+            'timestamp' => $timestamp,
+        ];
+    }
+
+    private function formatBytes(int $bytes): string
+    {
+        if ($bytes >= 1024 * 1024) {
+            return round($bytes / 1024 / 1024, 1) . ' MB';
+        }
+
+        if ($bytes >= 1024) {
+            return round($bytes / 1024, 1) . ' KB';
+        }
+
+        return $bytes . ' B';
+    }
+
+    private function backupPasswordConfigured(string $path): bool
+    {
+        if (! file_exists($path)) {
+            return false;
+        }
+
+        $content = file_get_contents($path) ?: '';
+
+        return (bool) preg_match('/^GMAIL_APP_PASSWORD=.+$/m', $content);
+    }
+
+    private function tailFile(string $path, int $lines): string
+    {
+        if (! file_exists($path)) {
+            return 'Лог почтового бэкапа пока не создан.';
+        }
+
+        return implode('', array_slice(file($path), -$lines));
     }
 }

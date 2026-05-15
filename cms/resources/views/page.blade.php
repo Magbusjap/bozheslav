@@ -8,7 +8,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <link rel="stylesheet" href="/css/index.css" />
         <link rel="stylesheet" href="/css/vendor/highlight.min.css" />
-        <title>{{ $page->seo_title ?? $page->title . ' — Михаил Божеслав' }}</title>
+        <title>{{ $page->seo_title ?? $page->title . ' — ' . blade_copy('page-blade', 'Михаил Божеслав') }}</title>
         <link rel="shortcut icon" href="/icons/favicon.ico" type="image/x-icon" />
         <meta name="description" content="{{ $page->seo_description ?? '' }}">
         <meta property="og:title" content="{{ $page->seo_title ?? $page->title }}">
@@ -24,7 +24,7 @@
         @auth
         <x-admin-bar 
             :editUrl="'/admin/site-pages/' . $page->id . '/edit'"
-            editLabel="Редактировать страницу"
+            :editLabel="blade_copy('page-blade', 'Редактировать страницу')"
         />
         @endauth
 
@@ -133,10 +133,10 @@
                                                 <input
                                                     class="input parser-block__input"
                                                     type="text"
-                                                    placeholder="{{ $block['data']['placeholder'] ?? 'Введите запрос...' }}"
+                                                    placeholder="{{ $block['data']['placeholder'] ?? blade_copy('page-blade', 'Введите запрос...') }}"
                                                 />
                                                 <button class="btn btn--primary parser-block__btn">
-                                                    {{ $block['data']['search_label'] ?? 'Найти' }}
+                                                    {{ $block['data']['search_label'] ?? blade_copy('page-blade', 'Найти') }}
                                                 </button>
                                             </div>
                                             <div class="parser-block__status" style="display:none"></div>
@@ -148,7 +148,7 @@
                                                 </table>
                                             </div>
                                             <div class="parser-block__empty" style="display:none">
-                                                Ничего не найдено. Попробуйте другой запрос.
+                                                {{ blade_copy('page-blade', 'Ничего не найдено. Попробуйте другой запрос.') }}
                                             </div>
                                             <div class="parser-block__pagination" style="display:none"></div>
                                         </div>
@@ -193,9 +193,9 @@
             @if(isset($related) && $related->count() > 0)
             <section class="section carousel-section">
                 <div class="container">
-                    <h2 class="carousel-section__title">Другие проекты</h2>
+                    <h2 class="carousel-section__title">{{ blade_copy('page-blade', 'Другие проекты') }}</h2>
                     <div class="carousel-wrapper">
-                        <button class="carousel-arrow carousel-arrow--prev" id="carouselPrev" aria-label="Назад">
+                        <button class="carousel-arrow carousel-arrow--prev" id="carouselPrev" aria-label="{{ blade_copy('page-blade', 'Назад') }}">
                             <svg class="sprites badge__icon" aria-hidden="true">
                                 <use href="/icons/sprites.svg#arrow-left"></use>
                             </svg>
@@ -242,7 +242,7 @@
                                 @endforeach
                             </div>
                         </div>
-                        <button class="carousel-arrow carousel-arrow--next" id="carouselNext" aria-label="Вперёд">
+                        <button class="carousel-arrow carousel-arrow--next" id="carouselNext" aria-label="{{ blade_copy('page-blade', 'Вперёд') }}">
                             <svg class="sprites badge__icon" aria-hidden="true">
                                 <use href="/icons/sprites.svg#arrow-right"></use>
                             </svg>

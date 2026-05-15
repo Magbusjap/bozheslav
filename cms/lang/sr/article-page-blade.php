@@ -3,6 +3,7 @@
 return [
     'blade' => [
         'page' => [
+            'Михаил Божеслав' => 'Mihail Božeslav',
             'Статья — Михаил Божеслав' => 'Članak — Mihail Božeslav',
             'Редактировать черновик' => 'Uredi nacrt',
             'Редактировать запись' => 'Uredi objavu',

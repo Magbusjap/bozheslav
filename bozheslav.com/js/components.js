@@ -16,7 +16,7 @@ export async function loadComponent(id, path) {
 }
 
 export function localizeLinks(root = document) {
-	const locale = window.SITE_I18N?.locale;
+	const locale = getCurrentLocale();
 	if (!["ru", "en", "sr"].includes(locale)) return;
 
 	root.querySelectorAll?.("a[href]").forEach((link) => {

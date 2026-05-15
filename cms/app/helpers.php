@@ -60,3 +60,40 @@ if (!function_exists('compileMjml')) {
         return $result->successful() ? ($result->output() ?: "") : "";
     }
 }
+
+if (! function_exists('flatten_translation_map')) {
+    /**
+     * @param  array<mixed>  $values
+     * @return array<string, string>
+     */
+    function flatten_translation_map(array $values): array
+    {
+        $flat = [];
+
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $flat = array_replace($flat, flatten_translation_map($value));
+                continue;
+            }
+
+            if (is_string($key) && is_string($value)) {
+                $flat[$key] = $value;
+            }
+        }
+
+        return $flat;
+    }
+}
+
+if (! function_exists('blade_copy')) {
+    function blade_copy(string $file, string $original): string
+    {
+        $translations = trans($file . '.blade');
+
+        if (! is_array($translations)) {
+            return $original;
+        }
+
+        return flatten_translation_map($translations)[$original] ?? $original;
+    }
+}

@@ -41,6 +41,82 @@
         @endif
     </x-filament::section>
 
+    {{-- Backup monitoring --}}
+    <x-filament::section heading="Мониторинг резервных копий" icon="heroicon-o-archive-box-arrow-down" class="mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Бэкап на сервере</p>
+                        <p class="mt-1 text-lg font-semibold">
+                            {{ $backupStatus['local']['isFresh'] ? 'Актуален' : 'Требует внимания' }}
+                        </p>
+                    </div>
+                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium
+                        {{ $backupStatus['local']['isFresh'] ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' }}">
+                        {{ $backupStatus['local']['isFresh'] ? 'OK' : 'Ошибка' }}
+                    </span>
+                </div>
+                <dl class="mt-4 space-y-2 text-sm">
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500 dark:text-gray-400">Последний файл</dt>
+                        <dd class="font-mono text-xs text-right break-all">{{ $backupStatus['local']['path'] ?? '—' }}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500 dark:text-gray-400">Размер</dt>
+                        <dd>{{ $backupStatus['local']['size'] }}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500 dark:text-gray-400">Дата</dt>
+                        <dd>{{ $backupStatus['local']['modified'] }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Бэкап на почту</p>
+                        <p class="mt-1 text-lg font-semibold">
+                            {{ $backupStatus['mail']['isFresh'] && $backupStatus['mail']['passwordConfigured'] ? 'Готов' : 'Требует настройки' }}
+                        </p>
+                    </div>
+                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium
+                        {{ $backupStatus['mail']['isFresh'] && $backupStatus['mail']['passwordConfigured'] ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' }}">
+                        {{ $backupStatus['mail']['isFresh'] && $backupStatus['mail']['passwordConfigured'] ? 'OK' : 'Проверить' }}
+                    </span>
+                </div>
+                <dl class="mt-4 space-y-2 text-sm">
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500 dark:text-gray-400">Последний архив</dt>
+                        <dd class="font-mono text-xs text-right break-all">{{ $backupStatus['mail']['path'] ?? '—' }}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500 dark:text-gray-400">Размер</dt>
+                        <dd>{{ $backupStatus['mail']['size'] }}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500 dark:text-gray-400">Дата</dt>
+                        <dd>{{ $backupStatus['mail']['modified'] }}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500 dark:text-gray-400">Частей для письма</dt>
+                        <dd>{{ $backupStatus['mail']['partsCount'] }}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500 dark:text-gray-400">Пароль Gmail</dt>
+                        <dd>{{ $backupStatus['mail']['passwordConfigured'] ? 'Настроен' : 'Не настроен' }}</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">Последние строки лога почтового бэкапа</p>
+            <pre class="max-h-64 overflow-auto rounded-xl bg-gray-950 p-4 text-xs text-gray-300">{{ $backupStatus['mail']['lastLog'] }}</pre>
+        </div>
+    </x-filament::section>
+
     {{-- Trusted IPs --}}
     <x-filament::section heading="Доверенные IP" icon="heroicon-o-check-badge" class="mt-6">
         <div class="flex gap-2 mb-4">

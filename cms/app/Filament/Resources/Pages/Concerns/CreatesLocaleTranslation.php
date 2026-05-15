@@ -71,4 +71,13 @@ trait CreatesLocaleTranslation
 
         return $data;
     }
+
+    protected function afterCreate(): void
+    {
+        $resource = static::getResource();
+
+        if (method_exists($resource, 'createMissingTranslations')) {
+            $resource::createMissingTranslations($this->record);
+        }
+    }
 }
