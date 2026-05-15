@@ -32,6 +32,7 @@ class TranslateStaticContent
         'modal-skills-js',
         'experience-page-js',
         'not-found-js',
+        'typewriter-js',
     ];
 
     public function handle(Request $request, Closure $next): Response
@@ -51,7 +52,7 @@ class TranslateStaticContent
         $replacements = $this->collectBladeReplacements();
 
         $content = str_replace('<html lang="ru">', '<html lang="' . e($locale) . '">', $content);
-        if ($replacements !== []) {
+        if ($replacements !== [] && $this->shouldApplyServerReplacements($request)) {
             $content = strtr($content, $replacements);
         }
 
@@ -73,12 +74,39 @@ class TranslateStaticContent
             }
         }
 
+        return str_contains((string) $response->headers->get('Content-Type'), 'text/html');
+    }
+
+    private function shouldApplyServerReplacements(Request $request): bool
+    {
+        $path = trim($request->path(), '/');
         $pathWithoutLocale = preg_replace('#^(ru|en|sr)(/|$)#', '', $path);
-        if (is_string($pathWithoutLocale) && str_starts_with($pathWithoutLocale, 'blog/')) {
+
+        if (! is_string($pathWithoutLocale)) {
+            return true;
+        }
+
+        if ($pathWithoutLocale === '' || in_array($pathWithoutLocale, [
+            'skills',
+            'portfolio',
+            'experience',
+            'contacts',
+            'blog',
+            'privacy',
+            'o-razrabotchike',
+        ], true)) {
+            return true;
+        }
+
+        if (str_starts_with($pathWithoutLocale, 'blog/')) {
             return false;
         }
 
-        return str_contains((string) $response->headers->get('Content-Type'), 'text/html');
+        if (str_starts_with($pathWithoutLocale, 'portfolio/pages/')) {
+            return false;
+        }
+
+        return false;
     }
 
     private function injectClientTranslations(string $content, string $locale, array $replacements): string

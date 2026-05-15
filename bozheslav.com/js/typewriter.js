@@ -1,14 +1,22 @@
 export function initTyped() {
-	if (!document.querySelector(".hero__typed")) return;
-	const typed = {
-		phrases: [
+	const element = document.querySelector(".hero__typed");
+
+	if (!element) return;
+
+	const translatedPhrases = window.SITE_I18N?.js?.typewriter?.phrases;
+	const phrases = Array.isArray(translatedPhrases) && translatedPhrases.length
+		? translatedPhrases
+		: [
 			"Привет...",
 			"Ищешь разработчика?",
 			"Нужен сайт под ключ?",
 			"Автоматизировать процессы?",
 			"Тогда ты по адресу.",
-		],
-		element: document.querySelector(".hero__typed"),
+		];
+
+	const typed = {
+		phrases,
+		element,
 		index: 0,
 		charIndex: 0,
 		isDeleting: false,

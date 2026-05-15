@@ -8,8 +8,7 @@
 		<link rel="stylesheet" href="/css/index.css" />
 		<link rel="stylesheet" href="/css/vendor/highlight.min.css" />
 		<link rel="shortcut icon" href="/icons/favicon.ico" type="image/x-icon" />
-		<title>Статья — Михаил Божеслав</title>
-		<title>{{ $post->seo_title ?? $post->title . ' — Михаил Божеслав' }}</title>
+		<title>{{ $post->seo_title ?? $post->title . ' — ' . blade_copy('article-page-blade', 'Михаил Божеслав') }}</title>
 		<meta name="description" content="{{ $post->seo_description ?? $post->excerpt }}">
 		<meta property="og:title" content="{{ $post->seo_title ?? $post->title }}">
 		<meta property="og:description" content="{{ $post->seo_description ?? $post->excerpt }}">
@@ -24,7 +23,7 @@
 		@auth
 		<x-admin-bar 
 			:editUrl="isset($post) ? '/admin/posts/' . $post->id . '/edit' : null"
-			:editLabel="isset($post) && $post->status === 'draft' ? 'Редактировать черновик' : 'Редактировать запись'"
+			:editLabel="blade_copy('article-page-blade', isset($post) && $post->status === 'draft' ? 'Редактировать черновик' : 'Редактировать запись')"
 		/>
 		@endauth
 
@@ -34,16 +33,16 @@
 			<article class="section article-page" id="article">
 				<div class="container article-page__container">
 					<!-- Breadcrumbs -->
-					<nav class="article-page__breadcrumb" aria-label="Навигация">
-						<a href="/blog" class="article-page__breadcrumb-link"
-							>← Блог</a
+					<nav class="article-page__breadcrumb" aria-label="{{ blade_copy('article-page-blade', 'Навигация') }}">
+						<a href="{{ url('/' . app()->getLocale() . '/blog') }}" class="article-page__breadcrumb-link"
+							>{{ blade_copy('article-page-blade', '← Блог') }}</a
 						>
 					</nav>
 
 					<!-- Meta -->
 							@isset($post)
 					<div class="article-page__meta">
-						<span class="badge badge__blog" data-filter="{{ $post->category->slug ?? 'other' }}">{{ $post->category->name ?? 'Разное' }}</span>
+						<span class="badge badge__blog" data-filter="{{ $post->category->slug ?? 'other' }}">{{ $post->category->name ?? blade_copy('article-page-blade', 'Разное') }}</span>
 						<!-- <span class="badge badge__blog">{{ $post->category->name ?? 'Разное' }}</span> -->
 						<time class="blog-card__date" datetime="{{ $post->created_at->format('Y-m-d') }}">
 							{{ $post->created_at->translatedFormat('d F Y') }}
@@ -127,14 +126,14 @@
 						@endforeach
 					</div>
 					@else
-					<h1 class="article-page__title">Статья не найдена</h1>
+					<h1 class="article-page__title">{{ blade_copy('article-page-blade', 'Статья не найдена') }}</h1>
 					@endisset
 
 					<!-- Navigation -->
 					<nav
 						class="article-page__nav"
 						id="articleNav"
-						aria-label="Другие статьи"
+						aria-label="{{ blade_copy('article-page-blade', 'Другие статьи') }}"
 					></nav>
 				</div>
 			</article>

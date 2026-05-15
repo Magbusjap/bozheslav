@@ -6,6 +6,7 @@ namespace App\Filament\Resources;
 use Awcodes\Curator\Components\Forms\CuratorPicker;
 use App\Filament\Resources\PostResource\Pages;
 use App\Filament\Resources\PostResource\RelationManagers;
+use App\Models\Category;
 use App\Models\Post;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\Actions\Action as InfolistAction;
@@ -36,6 +37,20 @@ class PostResource extends Resource
         Forms\Components\Select::make('locale')
             ->label('Язык статьи')
             ->options(Post::LOCALES)
+            ->live()
+            ->afterStateUpdated(function (?string $state, Forms\Set $set, Forms\Get $get): void {
+                $categoryId = $get('category_id');
+
+                if (! $categoryId) {
+                    return;
+                }
+
+                $category = Category::query()->find($categoryId);
+
+                if (! $category || $category->locale !== $state) {
+                    $set('category_id', null);
+                }
+            })
             ->default('ru')
             ->required(),
 		Forms\Components\TextInput::make('title')
@@ -57,7 +72,13 @@ class PostResource extends Resource
 			->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, callable $get) => $rule->where('locale', $get('locale'))),
 		Forms\Components\Select::make('category_id')
 		    ->label('Категория')
-			->relationship('category', 'name')
+			->options(fn (Forms\Get $get): array => Category::query()
+                ->where('locale', $get('locale') ?: 'ru')
+                ->orderBy('name')
+                ->pluck('name', 'id')
+                ->all())
+            ->searchable()
+            ->preload()
 			->required(),
                 Forms\Components\Textarea::make('excerpt')
                     ->label('Краткое описание')
@@ -293,6 +314,65 @@ class PostResource extends Resource
 			->checkIfRecordIsSelectableUsing(fn (Post $record): bool => ! $record->isTranslationPlaceholder());
 	}
 
+    public static function translationCloneFields(): array
+    {
+        return [
+            'title',
+            'slug',
+            'category_id',
+            'excerpt',
+            'content',
+            'cover_image',
+            'status',
+            'seo_title',
+            'seo_description',
+        ];
+    }
+
+    public static function translationCloneData(Post $source, string $targetLocale): array
+    {
+        $data = collect(self::translationCloneFields())
+            ->mapWithKeys(fn (string $field): array => [
+                $field => self::translationCloneFieldValue($source, $field, $targetLocale),
+            ])
+            ->all();
+
+        $data['locale'] = $targetLocale;
+        $data['slug'] = self::uniqueSlugForLocale($source->slug, $targetLocale);
+        $data['status'] = 'draft';
+
+        return $data;
+    }
+
+    public static function createMissingTranslations(Post $source): void
+    {
+        if (! $source->translation_group_id) {
+            return;
+        }
+
+        foreach (array_keys(Post::LOCALES) as $locale) {
+            if ($locale === $source->locale) {
+                continue;
+            }
+
+            $exists = Post::query()
+                ->where('translation_group_id', $source->translation_group_id)
+                ->where('locale', $locale)
+                ->exists();
+
+            if ($exists) {
+                continue;
+            }
+
+            $data = self::translationCloneData($source, $locale);
+            $data['locale'] = $locale;
+            $data['translation_group_id'] = $source->translation_group_id;
+            $data['status'] = $source->status;
+
+            Post::query()->create($data);
+        }
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -350,6 +430,37 @@ class PostResource extends Resource
         }
 
         return $uniqueSlug;
+    }
+
+    private static function translationCloneFieldValue(Post $source, string $field, string $targetLocale): mixed
+    {
+        if ($field === 'category_id') {
+            return self::translatedRelationKeyValue($source->category_id, Category::class, $targetLocale);
+        }
+
+        return $source->{$field};
+    }
+
+    private static function translatedRelationKeyValue(mixed $key, string $relatedModelClass, string $targetLocale): mixed
+    {
+        if (! $key) {
+            return $key;
+        }
+
+        $relatedRecord = $relatedModelClass::query()->find($key);
+
+        if (! $relatedRecord) {
+            return null;
+        }
+
+        if (! $relatedRecord->translation_group_id) {
+            return $key;
+        }
+
+        return $relatedModelClass::query()
+            ->where('translation_group_id', $relatedRecord->translation_group_id)
+            ->where('locale', $targetLocale)
+            ->value($relatedRecord->getKeyName());
     }
 
 	

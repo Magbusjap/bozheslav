@@ -16,6 +16,7 @@ trait HasTranslatableResource
         return Forms\Components\Select::make('locale')
             ->label('Язык')
             ->options(Post::LOCALES)
+            ->live()
             ->default('ru')
             ->required();
     }
@@ -85,7 +86,9 @@ trait HasTranslatableResource
     public static function translationCloneData(Model $source, string $targetLocale): array
     {
         $data = collect(static::translationCloneFields())
-            ->mapWithKeys(fn (string $field): array => [$field => $source->{$field}])
+            ->mapWithKeys(fn (string $field): array => [
+                $field => static::translationCloneFieldValue($source, $field, $targetLocale),
+            ])
             ->all();
 
         $data['locale'] = $targetLocale;
@@ -99,6 +102,40 @@ trait HasTranslatableResource
         }
 
         return $data;
+    }
+
+    public static function createMissingTranslations(Model $source): void
+    {
+        if (! $source->translation_group_id) {
+            return;
+        }
+
+        $model = static::getModel();
+
+        foreach (array_keys(Post::LOCALES) as $locale) {
+            if ($locale === $source->locale) {
+                continue;
+            }
+
+            $exists = $model::query()
+                ->where('translation_group_id', $source->translation_group_id)
+                ->where('locale', $locale)
+                ->exists();
+
+            if ($exists) {
+                continue;
+            }
+
+            $data = static::translationCloneData($source, $locale);
+            $data['locale'] = $locale;
+            $data['translation_group_id'] = $source->translation_group_id;
+
+            if (array_key_exists('status', $data) && isset($source->status)) {
+                $data['status'] = $source->status;
+            }
+
+            $model::query()->create($data);
+        }
     }
 
     public static function uniqueSlugForLocale(string $slug, string $locale): string
@@ -129,5 +166,43 @@ trait HasTranslatableResource
     protected static function slugUniqueRule(): \Closure
     {
         return fn (Unique $rule, callable $get) => $rule->where('locale', $get('locale'));
+    }
+
+    protected static function translationCloneFieldValue(Model $source, string $field, string $targetLocale): mixed
+    {
+        $relationModel = static::translatedRelationFields()[$field] ?? null;
+
+        if (is_string($relationModel)) {
+            return static::translatedRelationKeyValue($source->{$field}, $relationModel, $targetLocale);
+        }
+
+        return $source->{$field};
+    }
+
+    protected static function translatedRelationFields(): array
+    {
+        return [];
+    }
+
+    protected static function translatedRelationKeyValue(mixed $key, string $relatedModelClass, string $targetLocale): mixed
+    {
+        if (! $key) {
+            return $key;
+        }
+
+        $relatedRecord = $relatedModelClass::query()->find($key);
+
+        if (! $relatedRecord) {
+            return null;
+        }
+
+        if (! $relatedRecord->translation_group_id) {
+            return $key;
+        }
+
+        return $relatedModelClass::query()
+            ->where('translation_group_id', $relatedRecord->translation_group_id)
+            ->where('locale', $targetLocale)
+            ->value($relatedRecord->getKeyName());
     }
 }

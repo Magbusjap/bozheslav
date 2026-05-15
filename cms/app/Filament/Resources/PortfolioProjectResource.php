@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PortfolioProjectResource\Pages;
 use App\Filament\Resources\Concerns\HasTranslatableResource;
+use App\Models\PortfolioCategory;
 use App\Models\PortfolioProject;
 use App\Support\LocaleTranslationStatus;
 use Awcodes\Curator\Components\Forms\CuratorPicker;
@@ -48,7 +49,14 @@ class PortfolioProjectResource extends Resource
                 ->unique(ignoreRecord: true, modifyRuleUsing: self::slugUniqueRule()),
             Forms\Components\Select::make('portfolio_category_id')
                 ->label('Категория')
-                ->relationship('category', 'name')
+                ->options(fn (Forms\Get $get): array => PortfolioCategory::query()
+                    ->where('locale', $get('locale') ?: 'ru')
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->pluck('name', 'id')
+                    ->all())
+                ->searchable()
+                ->preload()
                 ->nullable(),
             Forms\Components\Select::make('status')
                 ->label('Статус')
@@ -185,6 +193,13 @@ class PortfolioProjectResource extends Resource
             'link_label',
             'cover_image',
             'sort_order',
+        ];
+    }
+
+    protected static function translatedRelationFields(): array
+    {
+        return [
+            'portfolio_category_id' => PortfolioCategory::class,
         ];
     }
 
