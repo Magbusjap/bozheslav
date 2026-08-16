@@ -7,6 +7,7 @@ use Awcodes\Curator\Components\Forms\CuratorPicker;
 use App\Filament\Resources\PostResource\Pages;
 use App\Filament\Resources\PostResource\RelationManagers;
 use App\Models\Category;
+use App\Models\MindMap;
 use App\Models\Post;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\Actions\Action as InfolistAction;
@@ -149,6 +150,25 @@ class PostResource extends Resource
 						->required()
 						->rows(10),
 				]),
+            Forms\Components\Builder\Block::make('mind_map')
+                ->label('Mind Map')
+                ->schema([
+                    Forms\Components\Select::make('mind_map_id')
+                        ->label('Карта')
+                        ->options(fn (): array => MindMap::query()->orderBy('title')->pluck('title', 'id')->all())
+                        ->searchable()
+                        ->preload()
+                        ->required(),
+                    Forms\Components\TextInput::make('title')
+                        ->label('Заголовок блока')
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('height')
+                        ->label('Высота canvas (px)')
+                        ->numeric()
+                        ->default(520)
+                        ->minValue(320)
+                        ->maxValue(1200),
+                ]),
 	        Forms\Components\Builder\Block::make('quote')
 	            ->label('Цитата')
 	            ->schema([
