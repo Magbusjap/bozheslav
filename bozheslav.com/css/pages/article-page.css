@@ -3,7 +3,7 @@
    ========================================================================== */
 
 .article-page {
-	padding: 3rem 1rem 5rem;
+	padding: 3rem 1rem 2rem;
 }
 
 .article-page__container {
@@ -172,11 +172,14 @@
 
 /* === Navigation === */
 
+.article-page__after {
+	padding: 0 1rem;
+}
+
 .article-page__nav {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 1rem;
-	margin-top: 4rem;
 	padding-top: 2rem;
 	border-top: 1px solid var(--border);
 }
@@ -216,6 +219,35 @@
 
 .article-nav__link:hover .article-nav__title {
 	color: var(--primary);
+}
+
+/* === Related posts === */
+
+.article-page__related {
+	padding: 0 1rem 5rem;
+}
+
+.article-page__related-container {
+	max-width: 1040px;
+}
+
+.article-page__related-title {
+	margin-bottom: 1.5rem;
+	font-size: 1.5rem;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.article-page__related .blog-page__grid {
+	margin-bottom: 0;
+}
+
+.article-page__related .blog-card__title {
+	font-size: 1.05rem;
+}
+
+.article-page__related .blog-card__desc {
+	font-size: 0.95rem;
 }
 
 
