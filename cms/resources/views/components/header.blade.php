@@ -35,7 +35,6 @@
 							<div class="language-switcher__menu" hidden data-language-menu>
 								<a class="language-switcher__option" href="/ru" data-locale-option="ru">Русский</a>
 								<a class="language-switcher__option" href="/en" data-locale-option="en">English</a>
-								<a class="language-switcher__option" href="/sr" data-locale-option="sr">Српски</a>
 							</div>
 						</div>
 						<button
@@ -74,7 +73,6 @@
 							<div class="language-switcher__menu" hidden data-language-menu>
 								<a class="language-switcher__option" href="/ru" data-locale-option="ru">Русский</a>
 								<a class="language-switcher__option" href="/en" data-locale-option="en">English</a>
-								<a class="language-switcher__option" href="/sr" data-locale-option="sr">Српски</a>
 							</div>
 						</div>
 						<button
