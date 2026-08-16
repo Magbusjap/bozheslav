@@ -44,7 +44,44 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 'panels::head.end',
-                fn () => '<link rel="stylesheet" href="/css/filament/media.css">',
+                fn () => '<link rel="stylesheet" href="/css/filament/media.css">' . Vite::withEntryPoints(['resources/js/mind-maps.js'])->toHtml(),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => <<<'HTML'
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const pingUrl = '/magbusjap/session/keepalive';
+        const pingIntervalMs = 5 * 60 * 1000;
+
+        const pingSession = () => {
+            fetch(pingUrl, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                cache: 'no-store',
+            }).catch(() => {});
+        };
+
+        pingSession();
+
+        window.setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                pingSession();
+            }
+        }, pingIntervalMs);
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                pingSession();
+            }
+        });
+    });
+</script>
+HTML,
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
