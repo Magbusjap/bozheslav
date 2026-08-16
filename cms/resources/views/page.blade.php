@@ -18,6 +18,9 @@
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-2M9GZV0JW3");</script>
 <script type="text/javascript">(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js?id=108285091","ym");ym(108285091,"init",{webvisor:true,clickmap:true,accurateTrackBounce:true,trackLinks:true});</script>
 <noscript><div><img src="https://mc.yandex.ru/watch/108285091" style="position:absolute;left:-9999px;" alt="" /></div></noscript>
+        @isset($localeUrls)
+        <script>window.SITE_LOCALE_URLS = @json($localeUrls);</script>
+        @endisset
 
     </head>
     <body>
@@ -35,11 +38,12 @@
                 <div class="container page__container">
                     <h1 class="page__title">{{ $page->title }}</h1>
                     @if($page->excerpt)
-                        <p>{{ $page->excerpt }}</p>
+                        <p class="page__lead">{{ $page->excerpt }}</p>
                     @endif
                     <div class="page__desc">
                         @if($page->content)
                             @foreach($page->content as $block)
+                                <div class="page__builder-block page__builder-block--{{ $block['type'] }}">
                                 @switch($block['type'])
                                     @case('heading')
                                         <{{ $block['data']['level'] }}>{{ $block['data']['text'] }}</{{ $block['data']['level'] }}>
@@ -184,6 +188,7 @@
                                         </div>
                                         @break
                                 @endswitch
+                                </div>
                             @endforeach
                         @endif
                     </div>

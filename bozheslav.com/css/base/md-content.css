@@ -19,6 +19,18 @@
     line-height: 1.7; 
     color: var(--fg); 
 }
+.md-content img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 30px auto;
+}
+.md-content p:has(> img:only-child) {
+    margin: 30px 0;
+}
+.md-content p:has(> img:only-child) img {
+    margin: 0 auto;
+}
 .md-content ul, 
 .md-content ol { 
     margin: 0 0 1rem 1.5rem; 

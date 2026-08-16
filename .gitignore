@@ -27,6 +27,7 @@ cms/node_modules/
 cms/public/build/
 cms/public/hot
 cms/public/storage
+cms/storage/app/public/media/
 cms/storage/*.key
 cms/storage/pail/
 

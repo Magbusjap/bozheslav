@@ -2,6 +2,56 @@
 
 use Illuminate\Support\Facades\Process;
 
+if (! function_exists('contactCaptcha')) {
+    function contactCaptcha(): array
+    {
+        $left = random_int(2, 9);
+        $right = random_int(2, 9);
+
+        session(['contact_captcha_answer' => $left + $right]);
+
+        return [
+            'question' => "{$left} + {$right}",
+        ];
+    }
+}
+
+if (! function_exists('localizedRecordRedirect')) {
+    function localizedRecordRedirect(string $modelClass, string $slug, string $locale, callable $urlBuilder): ?\Illuminate\Http\RedirectResponse
+    {
+        $model = new $modelClass();
+
+        if (! \Illuminate\Support\Facades\Schema::hasColumn($model->getTable(), 'locale') || ! \Illuminate\Support\Facades\Schema::hasColumn($model->getTable(), 'translation_group_id')) {
+            return null;
+        }
+
+        $sourceQuery = $modelClass::query()
+            ->where('slug', $slug)
+            ->where('locale', '!=', $locale);
+
+        if (! auth()->check() && \Illuminate\Support\Facades\Schema::hasColumn($model->getTable(), 'status')) {
+            $sourceQuery->where('status', 'published');
+        }
+
+        $source = $sourceQuery->first();
+        if (! $source?->translation_group_id) {
+            return null;
+        }
+
+        $targetQuery = $modelClass::query()
+            ->where('translation_group_id', $source->translation_group_id)
+            ->where('locale', $locale);
+
+        if (! auth()->check() && \Illuminate\Support\Facades\Schema::hasColumn($model->getTable(), 'status')) {
+            $targetQuery->where('status', 'published');
+        }
+
+        $target = $targetQuery->first();
+
+        return $target ? redirect($urlBuilder($target)) : null;
+    }
+}
+
 if (!function_exists('option')) {
     function option(string $key, ?string $default = null): ?string
     {

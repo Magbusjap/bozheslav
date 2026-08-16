@@ -9,12 +9,34 @@
     margin: 0 auto;
 }
 
+.page__lead {
+    margin: 0 0 30px;
+}
+
 .page__desc{
     color: var(--muted-fg);
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.page__builder-block {
+    margin: 0;
+}
+
+.page__builder-block > :first-child {
+    margin-top: 0;
+}
+
+.page__builder-block > :last-child {
+    margin-bottom: 0;
+}
+
+.page__builder-block figure {
+    margin: 0;
 }
 
 .page__desc img{
-    margin-top: 30px;
     display: block;
     margin: 0 auto;
 }
