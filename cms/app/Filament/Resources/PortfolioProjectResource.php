@@ -42,11 +42,8 @@ class PortfolioProjectResource extends Resource
                         $set('slug', \Illuminate\Support\Str::slug(transliterate($state)));
                     }
                 }),
-            Forms\Components\TextInput::make('slug')
-                ->label('Slug')
-                ->required()
-                ->maxLength(255)
-                ->unique(ignoreRecord: true, modifyRuleUsing: self::slugUniqueRule()),
+            Forms\Components\Hidden::make('slug')
+                ->dehydrated(),
             Forms\Components\Select::make('portfolio_category_id')
                 ->label('Категория')
                 ->options(fn (Forms\Get $get): array => PortfolioCategory::query()
@@ -113,7 +110,9 @@ class PortfolioProjectResource extends Resource
             Forms\Components\TextInput::make('sort_order')
                 ->label('Порядок сортировки')
                 ->numeric()
-                ->default(0),
+                ->minValue(1)
+                ->default(fn (Forms\Get $get): int => ((int) PortfolioProject::where('locale', $get('locale') ?: 'ru')->max('sort_order')) + 1)
+                ->helperText('Если указать занятую позицию, остальные проекты автоматически сдвинутся.'),
         ]);
     }
 

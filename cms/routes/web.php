@@ -7,20 +7,6 @@ use App\Models\MindMap;
 
 $siteLocales = ['ru', 'en', 'sr'];
 
-if (! function_exists('contactCaptcha')) {
-    function contactCaptcha(): array
-    {
-        $left = random_int(2, 9);
-        $right = random_int(2, 9);
-
-        session(['contact_captcha_answer' => $left + $right]);
-
-        return [
-            'question' => "{$left} + {$right}",
-        ];
-    }
-}
-
 $home = function () {
     $posts = \App\Models\Post::where('status', 'published')
         ->when(Schema::hasColumn('posts', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
@@ -151,8 +137,14 @@ $portfolioPage = function (...$params) {
         ->inRandomOrder()
         ->take(10)
         ->get();
+    $localeUrls = \App\Models\PortfolioPage::query()
+        ->when(! auth()->check(), fn ($query) => $query->where('status', 'published'))
+        ->where('translation_group_id', $page->translation_group_id)
+        ->pluck('slug', 'locale')
+        ->map(fn (string $slug, string $locale): string => url('/' . $locale . '/portfolio/pages/' . $slug))
+        ->all();
 
-    return view('page', compact('page', 'related'));
+    return view('page', compact('page', 'related', 'localeUrls'));
 };
 
 $mindMap = function (...$params) {
@@ -184,42 +176,6 @@ $page = function (...$params) {
     
     return view('page', compact('page'));
 };
-
-if (! function_exists('localizedRecordRedirect')) {
-    function localizedRecordRedirect(string $modelClass, string $slug, string $locale, callable $urlBuilder): ?\Illuminate\Http\RedirectResponse
-    {
-        $model = new $modelClass();
-
-        if (! Schema::hasColumn($model->getTable(), 'locale') || ! Schema::hasColumn($model->getTable(), 'translation_group_id')) {
-            return null;
-        }
-
-        $sourceQuery = $modelClass::query()
-            ->where('slug', $slug)
-            ->where('locale', '!=', $locale);
-
-        if (! auth()->check() && Schema::hasColumn($model->getTable(), 'status')) {
-            $sourceQuery->where('status', 'published');
-        }
-
-        $source = $sourceQuery->first();
-        if (! $source?->translation_group_id) {
-            return null;
-        }
-
-        $targetQuery = $modelClass::query()
-            ->where('translation_group_id', $source->translation_group_id)
-            ->where('locale', $locale);
-
-        if (! auth()->check() && Schema::hasColumn($model->getTable(), 'status')) {
-            $targetQuery->where('status', 'published');
-        }
-
-        $target = $targetQuery->first();
-
-        return $target ? redirect($urlBuilder($target)) : null;
-    }
-}
 
 $feedback = function (\Illuminate\Http\Request $request) {
 

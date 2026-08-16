@@ -126,6 +126,11 @@ function getCurrentLocale() {
 function buildLocaleUrl(locale) {
 	if (!["ru", "en", "sr"].includes(locale)) return window.location.pathname;
 
+	const localizedUrl = window.SITE_LOCALE_URLS?.[locale];
+	if (typeof localizedUrl === "string" && localizedUrl.length > 0) {
+		return localizedUrl;
+	}
+
 	const url = new URL(window.location.href);
 	const cleanPath = url.pathname.replace(/^\/(ru|en|sr)(?=\/|$)/, "") || "/";
 	url.pathname = `/${locale}${cleanPath === "/" ? "" : cleanPath}`;

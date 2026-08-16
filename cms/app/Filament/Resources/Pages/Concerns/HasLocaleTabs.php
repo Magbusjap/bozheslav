@@ -26,30 +26,10 @@ trait HasLocaleTabs
         $table = $query->getModel()->getTable();
 
         return $query
-            ->fromSub(function ($query) use ($locale, $table): void {
-                $query
-                    ->from($table)
-                    ->select("{$table}.*")
-                    ->selectRaw(
-                        "ROW_NUMBER() OVER (
-                            PARTITION BY COALESCE(translation_group_id::text, id::text)
-                            ORDER BY
-                                CASE
-                                    WHEN locale = ? THEN 0
-                                    WHEN locale = 'ru' THEN 1
-                                    WHEN locale = 'en' THEN 2
-                                    WHEN locale = 'sr' THEN 3
-                                    ELSE 4
-                                END,
-                                id
-                        ) as locale_row_number",
-                        [$locale]
-                    );
-            }, $table)
+            ->where('locale', $locale)
             ->select("{$table}.*")
-            ->selectRaw("CASE WHEN {$table}.locale = ? THEN 0 ELSE 1 END as missing_current_locale", [$locale])
-            ->selectRaw('? as selected_locale', [$locale])
-            ->where('locale_row_number', 1);
+            ->selectRaw('0 as missing_current_locale')
+            ->selectRaw('? as selected_locale', [$locale]);
     }
 
     private static function missingTranslationsCount(string $locale): int
