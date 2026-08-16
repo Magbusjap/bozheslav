@@ -45,5 +45,10 @@ _reference/
 Пример/app/public/portfolio/
 cms/public/portfolio/
 
+# Local Affine runtime data
+affine/config/private.key
+affine/postgres/
+affine/storage/
+
 # Accidental nested repositories
 **/.git/
