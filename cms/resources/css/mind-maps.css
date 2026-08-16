@@ -1,0 +1,466 @@
+.of-mind-map-editor {
+    border: 1px solid #d9e3ef;
+    border-radius: 1rem;
+    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    overflow: hidden;
+}
+
+.of-mind-map-editor__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #e6eef7;
+    background: rgba(255, 255, 255, 0.9);
+    flex-wrap: wrap;
+}
+
+.of-mind-map-editor__button {
+    border: 1px solid #c9d8ea;
+    border-radius: 9999px;
+    padding: 0.45rem 0.85rem;
+    background: white;
+    color: #92400e;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.of-mind-map-editor__button:hover {
+    background: #fff7ed;
+}
+
+.of-mind-map-editor__hint {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.of-mind-map-editor__canvas-shell {
+    position: relative;
+    height: 760px;
+    background: #252526;
+    overflow: hidden;
+}
+
+.of-mind-map-editor__canvas {
+    width: 100%;
+    height: 100%;
+}
+
+.of-mind-map-editor__canvas > .map-container,
+.of-mind-map-editor__canvas > .map-container > .map-canvas {
+    height: 100% !important;
+}
+
+.of-mind-map-editor .mind-elixir-toolbar {
+    display: none !important;
+}
+
+.of-mind-map-editor me-parent me-epd,
+.of-post-mind-map__viewer me-parent me-epd {
+    width: 20px !important;
+    height: 20px !important;
+    opacity: 0.96 !important;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+}
+
+.of-mind-map-editor me-parent me-epd.minus,
+.of-post-mind-map__viewer me-parent me-epd.minus {
+    opacity: 0.96 !important;
+}
+
+.of-mind-map-editor me-parent me-epd:hover,
+.of-post-mind-map__viewer me-parent me-epd:hover {
+    transform: scale(1.08);
+}
+
+.of-mind-map-editor__canvas-shell:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+}
+
+.of-mind-map-editor__canvas-shell:fullscreen .of-mind-map-editor__canvas {
+    height: 100vh;
+}
+
+.of-mind-map-editor__topbar {
+    position: absolute;
+    top: 0.9rem;
+    left: 0.9rem;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.of-mind-map-editor__top-button,
+.of-mind-map-editor__brand {
+    min-height: 2.5rem;
+    padding: 0.55rem 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.5rem;
+    background: rgba(5, 8, 16, 0.92);
+    color: #f8fafc;
+    font-size: 0.92rem;
+    font-weight: 700;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+.of-mind-map-editor__top-button {
+    cursor: pointer;
+}
+
+.of-mind-map-editor__top-button--accent {
+    color: #ff6b6b;
+}
+
+.of-mind-map-editor__brand {
+    color: #fde68a;
+}
+
+.of-mind-map-editor__leftbar {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.55rem;
+    border-radius: 0.75rem;
+    background: rgba(5, 8, 16, 0.92);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+.of-mind-map-editor__icon-button {
+    min-width: 2.45rem;
+    height: 2.45rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.55rem;
+    background: transparent;
+    color: #f8fafc;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.of-mind-map-editor__icon-button:hover,
+.of-mind-map-editor__top-button:hover,
+.of-mind-map-editor__tab:hover,
+.of-mind-map-editor__action:hover,
+.of-mind-map-editor__emoji:hover {
+    background: rgba(37, 99, 235, 0.18);
+}
+
+.of-mind-map-editor__inspector {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    bottom: 0.9rem;
+    z-index: 60;
+    width: 300px;
+    padding: 0.85rem;
+    border-radius: 0.9rem;
+    background: rgba(5, 8, 16, 0.96);
+    color: #f8fafc;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+    overflow-y: auto;
+    transition:
+        transform 0.24s ease,
+        opacity 0.24s ease;
+}
+
+.of-mind-map-editor__canvas-shell.is-inspector-collapsed .of-mind-map-editor__inspector {
+    transform: translateX(calc(100% - 1.1rem));
+}
+
+.of-mind-map-editor__canvas-shell.is-inspector-collapsed .of-mind-map-editor__inspector-toggle {
+    transform: rotate(180deg);
+}
+
+.of-mind-map-editor__canvas-shell.is-inspector-collapsed .of-mind-map-editor__tabs,
+.of-mind-map-editor__canvas-shell.is-inspector-collapsed .of-mind-map-editor__panel,
+.of-mind-map-editor__canvas-shell.is-inspector-collapsed .of-mind-map-editor__status {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.of-mind-map-editor__inspector-toggle {
+    position: absolute;
+    top: 50%;
+    left: -0.95rem;
+    transform: translateY(-50%);
+    width: 2.25rem;
+    height: 4.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(5, 8, 16, 0.98) 100%);
+    color: #f8fafc;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    cursor: pointer;
+    z-index: 5;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.of-mind-map-editor__inspector-toggle:hover {
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.92) 0%, rgba(30, 64, 175, 0.96) 100%);
+}
+
+.of-mind-map-editor__tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.of-mind-map-editor__tab {
+    flex: 1;
+    min-height: 2.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.55rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: #cbd5e1;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.of-mind-map-editor__tab.is-active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.of-mind-map-editor__panel {
+    display: none;
+}
+
+.of-mind-map-editor__panel.is-active {
+    display: block;
+}
+
+.of-mind-map-editor__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+}
+
+.of-mind-map-editor__field span {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.of-mind-map-editor__input,
+.of-mind-map-editor__textarea,
+.of-mind-map-editor__color,
+.of-mind-map-editor__field input[type='range'],
+.of-mind-map-editor__field select {
+    width: 100%;
+}
+
+.of-mind-map-editor__input,
+.of-mind-map-editor__textarea,
+.of-mind-map-editor__field select {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.55rem;
+    background: rgba(255, 255, 255, 0.03);
+    color: #f8fafc;
+    padding: 0.7rem 0.85rem;
+    outline: none;
+}
+
+.of-mind-map-editor__textarea {
+    resize: vertical;
+}
+
+.of-mind-map-editor__color {
+    height: 2.6rem;
+    border: none;
+    border-radius: 0.55rem;
+    background: transparent;
+    padding: 0;
+}
+
+.of-mind-map-editor__grid {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.of-mind-map-editor__grid--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.of-mind-map-editor__icon-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.of-mind-map-editor__emoji {
+    min-height: 2.45rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.55rem;
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.of-mind-map-editor__emoji.is-active {
+    background: rgba(37, 99, 235, 0.28);
+    border-color: rgba(96, 165, 250, 0.55);
+}
+
+.of-mind-map-editor__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+}
+
+.of-mind-map-editor__action {
+    min-height: 2.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.55rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: #f8fafc;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.of-mind-map-editor__action--danger {
+    color: #fecaca;
+}
+
+.of-mind-map-editor__status {
+    margin-top: 1rem;
+    border-radius: 0.6rem;
+    padding: 0.7rem 0.85rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    font-size: 0.85rem;
+}
+
+.of-mind-map-editor__message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    padding: 2rem;
+    color: #64748b;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.of-mind-map-editor__message--error {
+    color: #fca5a5;
+}
+
+.of-post-mind-map {
+    margin: 3rem 0;
+}
+
+.of-post-mind-map__title {
+    margin: 0 0 1rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.of-post-mind-map__viewer {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #dbe5f0;
+    border-radius: 1rem;
+    background: linear-gradient(180deg, #fffdf8 0%, #ffffff 100%);
+    box-shadow: 0 12px 30px rgba(146, 64, 14, 0.08);
+}
+
+.of-post-mind-map__canvas {
+    width: 100%;
+    min-height: 320px;
+}
+
+.of-post-mind-map__canvas > .map-container,
+.of-post-mind-map__canvas > .map-container > .map-canvas {
+    height: 100% !important;
+}
+
+.of-post-mind-map__viewer-toolbar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 20;
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.of-post-mind-map__viewer-button {
+    min-height: 2.4rem;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 9999px;
+    background: rgba(15, 23, 42, 0.84);
+    color: #f8fafc;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+}
+
+.of-post-mind-map__viewer-button:hover {
+    background: rgba(30, 41, 59, 0.96);
+}
+
+.of-post-mind-map__viewer:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    background: #252526;
+}
+
+.of-post-mind-map__viewer:fullscreen .of-post-mind-map__canvas {
+    height: 100vh !important;
+}
+
+.of-post-mind-map__viewer:fullscreen .of-post-mind-map__viewer-toolbar {
+    top: 1.25rem;
+    right: 1.25rem;
+}
+
+.of-post-mind-map__excerpt {
+    margin-top: 1rem;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 1280px) {
+    .of-mind-map-editor__inspector {
+        position: static;
+        width: 100%;
+        margin: 1rem;
+        max-height: 420px;
+        transform: none !important;
+    }
+
+    .of-mind-map-editor__canvas-shell {
+        padding-top: 4.5rem;
+        padding-bottom: 7rem;
+        height: auto;
+        min-height: 620px;
+    }
+
+    .of-mind-map-editor__canvas {
+        height: 620px;
+    }
+
+    .of-mind-map-editor__inspector-toggle {
+        display: none;
+    }
+
+    .of-post-mind-map__viewer-toolbar {
+        position: static;
+        padding: 1rem 1rem 0;
+    }
+}

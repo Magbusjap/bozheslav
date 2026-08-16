@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
+use App\Models\MindMap;
 
 $siteLocales = ['ru', 'en', 'sr'];
 
@@ -83,7 +84,46 @@ $article = function (...$params) {
         abort(404);
     }
     
-    return view('article', compact('post'));
+    $publishedPosts = \App\Models\Post::query()
+        ->when(Schema::hasColumn('posts', 'locale'), fn ($query) => $query->where('locale', app()->getLocale()))
+        ->where('status', 'published');
+
+    $previousPost = (clone $publishedPosts)
+        ->where(function ($query) use ($post): void {
+            $query
+                ->where('created_at', '<', $post->created_at)
+                ->orWhere(function ($query) use ($post): void {
+                    $query
+                        ->where('created_at', $post->created_at)
+                        ->where('id', '<', $post->id);
+                });
+        })
+        ->orderByDesc('created_at')
+        ->orderByDesc('id')
+        ->first();
+
+    $nextPost = (clone $publishedPosts)
+        ->where(function ($query) use ($post): void {
+            $query
+                ->where('created_at', '>', $post->created_at)
+                ->orWhere(function ($query) use ($post): void {
+                    $query
+                        ->where('created_at', $post->created_at)
+                        ->where('id', '>', $post->id);
+                });
+        })
+        ->orderBy('created_at')
+        ->orderBy('id')
+        ->first();
+
+    $randomPosts = (clone $publishedPosts)
+        ->with('category')
+        ->where('id', '!=', $post->id)
+        ->inRandomOrder()
+        ->take(3)
+        ->get();
+
+    return view('article', compact('post', 'previousPost', 'nextPost', 'randomPosts'));
 };
 
 $portfolioPage = function (...$params) {
@@ -113,6 +153,13 @@ $portfolioPage = function (...$params) {
         ->get();
 
     return view('page', compact('page', 'related'));
+};
+
+$mindMap = function (...$params) {
+    $slug = end($params);
+    $mindMap = MindMap::where('slug', $slug)->firstOrFail();
+
+    return view('mind-map', compact('mindMap'));
 };
 
 $page = function (...$params) {
@@ -232,7 +279,7 @@ $feedback = function (\Illuminate\Http\Request $request) {
     return response()->json(['success' => true]);
 };
 
-$siteRoutes = function () use ($home, $skills, $portfolio, $experience, $contacts, $blog, $article, $portfolioPage, $page, $feedback) {
+$siteRoutes = function () use ($home, $skills, $portfolio, $experience, $contacts, $blog, $article, $portfolioPage, $mindMap, $page, $feedback) {
     Route::get('/', $home);
     Route::get('/skills', $skills);
     Route::get('/portfolio', $portfolio);
@@ -241,6 +288,7 @@ $siteRoutes = function () use ($home, $skills, $portfolio, $experience, $contact
     Route::post('/contacts', $feedback);
     Route::get('/blog', $blog);
     Route::get('/blog/{slug}', $article);
+    Route::get('/mind-maps/{slug}', $mindMap);
     Route::get('/portfolio/pages/{slug}', $portfolioPage);
     Route::get('/resume/download', [App\Http\Controllers\ResumeController::class, 'download']);
     Route::get('/{slug}', $page);
@@ -248,6 +296,19 @@ $siteRoutes = function () use ($home, $skills, $portfolio, $experience, $contact
 
 // hh_parser
 Route::get('/api/vacancies', [App\Http\Controllers\ParserController::class, 'search']);
+
+Route::prefix('magbusjap')
+    ->group(function () {
+        Route::get('/session/keepalive', function () {
+            if (! auth()->check()) {
+                return redirect('/magbusjap/login');
+            }
+
+            request()->session()->put('_admin_keepalive_at', now()->timestamp);
+
+            return response()->noContent();
+        })->name('admin.session.keepalive');
+    });
 
 Route::prefix('{locale}')
     ->whereIn('locale', $siteLocales)

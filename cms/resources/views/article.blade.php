@@ -14,6 +14,7 @@
 		<meta property="og:description" content="{{ $post->seo_description ?? $post->excerpt }}">
 		<meta property="og:image" content="{{ $post->cover_url ?? '' }}">
 		<meta property="og:type" content="article">
+        @vite('resources/js/mind-maps.js')
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-2M9GZV0JW3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-2M9GZV0JW3");</script>
 <script type="text/javascript">(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js?id=108285091","ym");ym(108285091,"init",{webvisor:true,clickmap:true,accurateTrackBounce:true,trackLinks:true});</script>
@@ -112,6 +113,53 @@
 										{!! $converter->convert($block['data']['content']) !!}
 									</div>
 									@break
+                                @case('mind_map')
+                                    @php
+                                        $mindMap = \App\Models\MindMap::find($block['data']['mind_map_id'] ?? null);
+                                        $height = (int) ($block['data']['height'] ?? 520);
+                                    @endphp
+                                    @if($mindMap)
+                                        <section class="of-post-mind-map">
+                                            @if(!empty($block['data']['title']))
+                                                <h2 class="of-post-mind-map__title">{{ $block['data']['title'] }}</h2>
+                                            @endif
+
+                                            <div
+                                                class="of-post-mind-map__viewer"
+                                                data-mind-map-viewer
+                                                data-mind-map='@json($mindMap->decodedData())'
+                                            >
+                                                <div class="of-post-mind-map__viewer-toolbar">
+                                                    <button type="button" class="of-post-mind-map__viewer-button" data-mind-map-viewer-action="toggle-theme">
+                                                        Dark
+                                                    </button>
+                                                    <button type="button" class="of-post-mind-map__viewer-button" data-mind-map-viewer-action="scale-fit">
+                                                        Fit
+                                                    </button>
+                                                    <button type="button" class="of-post-mind-map__viewer-button" data-mind-map-viewer-action="zoom-in">
+                                                        +
+                                                    </button>
+                                                    <button type="button" class="of-post-mind-map__viewer-button" data-mind-map-viewer-action="zoom-out">
+                                                        -
+                                                    </button>
+                                                    <button type="button" class="of-post-mind-map__viewer-button" data-mind-map-viewer-action="toggle-fullscreen">
+                                                        Fullscreen
+                                                    </button>
+                                                </div>
+
+                                                <div
+                                                    class="of-post-mind-map__canvas"
+                                                    data-mind-map-canvas
+                                                    style="height: {{ max($height, 320) }}px;"
+                                                ></div>
+                                            </div>
+
+                                            @if($mindMap->excerpt)
+                                                <p class="of-post-mind-map__excerpt">{{ $mindMap->excerpt }}</p>
+                                            @endif
+                                        </section>
+                                    @endif
+                                    @break
 								@case('image_text')
 									<div class="article-page__image-text article-page__image-text--{{ $block['data']['position'] }}">
 										<figure class="article-page__image-text-img" style="width: {{ $block['data']['width'] ?? 300 }}px;">
@@ -128,15 +176,86 @@
 					@else
 					<h1 class="article-page__title">{{ blade_copy('article-page-blade', 'Статья не найдена') }}</h1>
 					@endisset
+				</div>
+			</article>
 
-					<!-- Navigation -->
+			@if(($previousPost ?? null) || ($nextPost ?? null))
+			<section class="section article-page__after">
+				<div class="container article-page__container">
 					<nav
 						class="article-page__nav"
 						id="articleNav"
-						aria-label="{{ blade_copy('article-page-blade', 'Другие статьи') }}"
-					></nav>
+						aria-label="{{ blade_copy('article-page-blade', 'Навигация по статьям') }}"
+					>
+						<div class="article-nav__prev">
+							@if($previousPost)
+							<a class="article-nav__link" href="{{ url('/' . app()->getLocale() . '/blog/' . $previousPost->slug) }}">
+								<span class="article-nav__label">{{ blade_copy('article-page-blade', 'Предыдущая статья') }}</span>
+								<span class="article-nav__title">← {{ $previousPost->title }}</span>
+							</a>
+							@endif
+						</div>
+						<div class="article-nav__next">
+							@if($nextPost)
+							<a class="article-nav__link article-nav__link--right" href="{{ url('/' . app()->getLocale() . '/blog/' . $nextPost->slug) }}">
+								<span class="article-nav__label">{{ blade_copy('article-page-blade', 'Следующая статья') }}</span>
+								<span class="article-nav__title">{{ $nextPost->title }} →</span>
+							</a>
+							@endif
+						</div>
+					</nav>
 				</div>
-			</article>
+			</section>
+			@endif
+
+			@if(isset($randomPosts) && $randomPosts->isNotEmpty())
+			<section class="section article-page__related" aria-labelledby="relatedPostsTitle">
+				<div class="container article-page__related-container">
+					<h2 class="article-page__related-title" id="relatedPostsTitle">
+						{{ blade_copy('article-page-blade', 'Другие статьи') }}
+					</h2>
+					<div class="blog-page__grid article-page__related-grid">
+						@foreach($randomPosts as $randomPost)
+						<article class="card blog-card">
+							<div class="blog-card__image-wrap">
+								<img
+									src="{{ $randomPost->cover_url ?? '/images/blog/default.jpg' }}"
+									alt="{{ $randomPost->title }}"
+									class="blog-card__image"
+									loading="lazy"
+								/>
+							</div>
+							<div class="card__body">
+								<div class="blog-card__meta">
+									<span class="badge badge__blog" data-filter="{{ $randomPost->category->slug ?? 'other' }}">
+										{{ $randomPost->category->name ?? blade_copy('article-page-blade', 'Разное') }}
+									</span>
+									<span class="blog-card__date-group">
+										<svg class="sprites badge__icon" aria-hidden="true">
+											<use href="/icons/sprites.svg#calendar"></use>
+										</svg>
+										<time class="blog-card__date" datetime="{{ $randomPost->created_at->format('Y-m-d') }}">
+											{{ $randomPost->created_at->translatedFormat('d F Y') }}
+										</time>
+									</span>
+								</div>
+								<a href="{{ url('/' . app()->getLocale() . '/blog/' . $randomPost->slug) }}" class="blog-card__link-a">
+									<h3 class="blog-card__title">{{ $randomPost->title }}</h3>
+								</a>
+								<p class="blog-card__desc">{{ $randomPost->excerpt }}</p>
+								<a href="{{ url('/' . app()->getLocale() . '/blog/' . $randomPost->slug) }}" class="blog-card__link">
+									{{ blade_copy('article-page-blade', 'Читать далее') }}
+									<svg class="sprites badge__icon" aria-hidden="true">
+										<use href="/icons/sprites.svg#general-arrow"></use>
+									</svg>
+								</a>
+							</div>
+						</article>
+						@endforeach
+					</div>
+				</div>
+			</section>
+			@endif
 		</main>
 
 		<div id="footer"></div>
